@@ -426,7 +426,7 @@ do
 done
 ####Reset iptables on C7Host
 echo "Iptables is restarting"
-systemctlstart libvirtd
+systemctl restart libvirtd
 iptables-save > /etc/sysconfig/iptables
 service iptables save
 sleep 3
