@@ -54,15 +54,7 @@ do
 		exit 2
 	fi
 
-	
 done
-
-###--- Disable iptables and restart Named service ###
-
-#echo "-------Disabling iptables-----------"
-#systemctl stop iptables
-#echo -e "\e[32mTurned OFF \e[0m"
-
 
 echo "-------Restarting Named-----------"
 systemctl restart named
