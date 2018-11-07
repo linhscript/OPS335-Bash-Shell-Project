@@ -322,7 +322,7 @@ sleep 3
 EOF
 
 #### Network Configuration for OTTAWA ######
-check "ssh root@172.17.15.3 grep -v 'DNS* -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-eth0 > ipconot.txt " "Can not obtain ipconfig from OTTAWA"
+check "ssh root@172.17.15.3 grep -v -e 'DNS* -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-eth0 > ipconot.txt " "Can not obtain ipconfig from OTTAWA"
 echo "DNS1="172.17.15.2"" >> ipconot.txt
 echo "PEERDNS=no" >> ipconot.txt
 echo "DOMAIN=towns.ontario.ops" >> ipconot.txt
@@ -371,7 +371,7 @@ sleep 3
 EOF
 
 #### Network Configuration for CLOYNE ######
-check "ssh root@172.17.15.100 grep -v 'DNS* -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-eth0 > ipconcl.txt " "Error when obtaining ipconfig file to Cloyne"
+check "ssh root@172.17.15.100 grep -v -e 'DNS* -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-eth0 > ipconcl.txt " "Error when obtaining ipconfig file to Cloyne"
 echo "DNS1="172.17.15.2"" >> ipconcl.txt
 echo "PEERDNS=no" >> ipconcl.txt
 echo "DOMAIN=towns.ontario.ops" >> ipconcl.txt
