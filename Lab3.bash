@@ -16,9 +16,9 @@ function check() {
      		exit 1
 	fi	
 }
-read -p "What is your Seneca username: " $username
-read -p "What is your IP Address of VM1" $IP
-$digit=$( echo "$IP" | awk -F. '{print $3}' )
+read -p "What is your Seneca username: " username
+read -p "What is your IP Address of VM1" IP
+digit=$( echo "$IP" | awk -F. '{print $3}' )
 
 ##Checking running script by root###
 if [ `id -u` -ne 0 ]
@@ -108,6 +108,7 @@ echo -e "###\e[32mFiles Added Done\e[m###"
 echo
 #### Adding DNS and DOMAIN ####
 
+cp /etc/sysconfig/network-scripts/ifcfg-ens33 /etc/sysconfig/network-scripts/ifcfg-ens33.backup
 grep -v -i -e "^DNS.*" -e "^DOMAIN.*" /etc/sysconfig/network-scripts/ifcfg-ens33 > /etc/sysconfig/network-scripts/ifcfg-ens33
 echo "DNS1=192.168.$digit.1" >> /etc/sysconfig/network-scripts/ifcfg-ens33
 echo "DOMAIN=$username.ops" >> /etc/sysconfig/network-scripts/ifcfg-ens33
