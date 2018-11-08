@@ -108,19 +108,30 @@ echo -e "###\e[32mFiles Added Done\e[m###"
 echo
 #### Adding DNS and DOMAIN ####
 
-grep -v -e "^DNS.*" -e "^DOMAIN.*" > /etc/sysconfig/network-scripts/ifcfg-ens33
+grep -v -e "^DNS.*" -e "^DOMAIN.*" /etc/sysconfig/network-scripts/ifcfg-ens33 > /etc/sysconfig/network-scripts/ifcfg-ens33
 echo "DNS1=192.168.$digit.1" >> /etc/sysconfig/network-scripts/ifcfg-ens33
 echo "DOMAIN=$username.ops" >> /etc/sysconfig/network-scripts/ifcfg-ens33
-echo	
-echo -e "###\e[32mConfiguration Done\e[m###"
-echo
 
 #### Adding rules in IPtables ####
-
+grep -v "dport 53" /etc/sysconfig/iptables > /etc/sysconfig/iptables
 iptables -I INPUT -p tcp --dport 53 -j ACCEPT
 iptables -I INPUT -p udp --dport 53 -j ACCEPT
 iptables-save > /etc/sysconfig/iptables
-	
+service iptables save
+
+### Remove hosts in the previous lab ###
+grep -v -i -e "vm.*" /etc/hosts > /etc/hosts
+echo 'nameserver 192.168.$digit.1' > /etc/resolv.conf
+echo 'nameserver 8.8.8.8' >> /etc/resolv.conf
+
+
+systemctl restart iptables
+systemctl restart named
+
+clear
+echo	
+echo -e "###\e[32mConfiguration Done\e[m###"
+echo
 
 
 
