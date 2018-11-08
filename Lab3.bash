@@ -35,6 +35,11 @@ echo
 echo "############ Installing DNS ###########"
 echo 
 check "yum install bind* -y" "Can not use Yum to install"
+systemctl start named
+systemctl enable named
+echo -e "\e[32mInstalling Done\e[m"
+
+### Making DNS configuration file ####
 cat > /etc/named.conf << EOF
 options {
         directory "/var/named/";
@@ -53,11 +58,69 @@ zone "$username.ops" {
         type master;
         file "mydb-for-$username-ops";
 };
+zone "$digit.168.192.in-addr.arpa." {
+        type master;
+        file "mydb-for-192.168.$digit";
+};
+EOF
+
+##### Making forward zone file ####
+
+cat > /var/named/mydb-for-$username-ops << EOF
+\$TTL    3D
+@       IN      SOA     host.$username.ops.      hostmaster.$username.ops.(
+                2018042901       ; Serial
+                8H      ; Refresh
+                2H      ; Retry
+                1W      ; Expire
+                1D      ; Negative Cache TTL
+);
+@       IN      NS      host.$username.ops.
+host    IN      A       192.168.$digit.1
+vm1		IN		A 		192.168.$digit.2
+vm2		IN		A 		192.168.$digit.3
+vm3		IN		A 		192.168.$digit.4
 
 EOF
 
+##### Making reverse zone file  #####
 
+cat > /var/named/mydb-for-192.168.$digit << EOF
 
+\$TTL    3D
+@       IN      SOA     host.$username.ops.      hostmaster.$username.ops.(
+                2018042901       ; Serial
+                8H      ; Refresh
+                2H      ; Retry
+                1W      ; Expire
+                1D      ; Negative Cache TTL
+);
+@       IN      NS      host.$username.ops.
+1       IN      PTR     host.$username.ops.
+2		IN		PTR		vm1.$username.ops.
+3		IN		PTR		vm2.$username.ops.
+4		IN		PTR		vm3.$username.ops.
+
+EOF
+	
+echo	
+echo -e "###\e[32mFiles Added Done\e[m###"
+echo
+#### Adding DNS and DOMAIN ####
+
+grep -v -e "^DNS.*" -e "^DOMAIN.*" > /etc/sysconfig/network-scripts/ifcfg-ens33
+echo "DNS1=192.168.$digit.1" >> /etc/sysconfig/network-scripts/ifcfg-ens33
+echo "DOMAIN=$username.ops" >> /etc/sysconfig/network-scripts/ifcfg-ens33
+echo	
+echo -e "###\e[32mConfiguration Done\e[m###"
+echo
+
+#### Adding rules in IPtables ####
+
+iptables -I INPUT -p tcp --dport 53 -j ACCEPT
+iptables -I INPUT -p udp --dport 53 -j ACCEPT
+iptables-save > /etc/sysconfig/iptables
+	
 
 
 
