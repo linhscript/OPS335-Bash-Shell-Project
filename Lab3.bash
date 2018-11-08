@@ -108,7 +108,7 @@ echo -e "###\e[32mFiles Added Done\e[m###"
 echo
 #### Adding DNS and DOMAIN ####
 
-grep -v -e "^DNS.*" -e "^DOMAIN.*" /etc/sysconfig/network-scripts/ifcfg-ens33 > /etc/sysconfig/network-scripts/ifcfg-ens33
+grep -v -i -e "^DNS.*" -e "^DOMAIN.*" /etc/sysconfig/network-scripts/ifcfg-ens33 > /etc/sysconfig/network-scripts/ifcfg-ens33
 echo "DNS1=192.168.$digit.1" >> /etc/sysconfig/network-scripts/ifcfg-ens33
 echo "DOMAIN=$username.ops" >> /etc/sysconfig/network-scripts/ifcfg-ens33
 
