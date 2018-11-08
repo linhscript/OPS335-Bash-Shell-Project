@@ -27,13 +27,14 @@ then
 	exit 1 
 fi
 
-####
+#### Checking Internet Connection###
+check "ping -c 3 google.ca > /dev/null" "Can not ping GOOGLE.CA, check your Internet connection "
 
 ## Installing BIND Package ######
 echo 
 echo "############ Installing DNS ###########"
 echo 
-check "yum install bind*" ""
+check "yum install bind* -y" "Can not use Yum to install"
 cat > /etc/named.conf << EOF
 options {
         directory "/var/named/";
