@@ -108,7 +108,7 @@ echo -e "###\e[32mFiles Added Done\e[m###"
 echo
 #### Adding DNS and DOMAIN ####
 
-if [ -f /etc/sysconfig/network-scripts/ifcfg-ens33.backup ]
+if [ ! -f /etc/sysconfig/network-scripts/ifcfg-ens33.backup ]
 then
 	cp /etc/sysconfig/network-scripts/ifcfg-ens33 /etc/sysconfig/network-scripts/ifcfg-ens33.backup
 done
