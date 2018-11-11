@@ -17,7 +17,7 @@ function check() {
 	fi	
 }
 read -p "What is your Seneca username: " username
-read -p "What is your IP Address of VM1" IP
+read -p "What is your IP Address of VM1: " IP
 digit=$( echo "$IP" | awk -F. '{print $3}' )
 
 ##Checking running script by root###
