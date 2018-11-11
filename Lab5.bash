@@ -25,12 +25,9 @@ fi
 
 read -p "What is your Seneca username: " username
 read -p "What is your FULL NAME: " fullname
-read -p "What is your IP Address of VM1" IP
+read -p "What is your IP Address of VM1: " IP1
+read -p "What is your IP Address of VM2: " IP2
 digit=$( echo "$IP" | awk -F. '{print $3}' )
-
-########## List VM1 and VM2 ############
-vmip="192.168.$digit.2 192.168.$digit.3"
-
 
 #### Checking Internet Connection###
 check "ping -c 3 google.ca > /dev/null" "Can not ping GOOGLE.CA, check your Internet connection "
