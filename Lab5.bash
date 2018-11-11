@@ -36,22 +36,22 @@ check "ping -c 3 google.ca > /dev/null" "Can not ping GOOGLE.CA, check your Inte
 echo 
 echo "############ Installing Samba Server ###########"
 echo 
-check "ssh 192.168.$digit.3 yum install samba* -y" "Can not use Yum to install"
-systemctl start smb
-systemctl enable smb
+check "ssh $IP2 yum install samba* -y" "Can not use Yum to install"
+ssh $IP2 systemctl start smb
+ssh $IP2 systemctl enable smb
 echo -e "\e[32mInstalling Done\e[m"
 
 
 ### Backup config file ###
 
 echo "Backing up configuration file"
-if [ ! -f /etc/samba/smb.conf.backup ]
+if [ ! -f ssh $IP2:/etc/samba/smb.conf.backup ]
 then
-	cp /etc/samba/smb.conf /etc/samba/smb.conf.backup
+	ssh $IP2 "cp /etc/samba/smb.conf /etc/samba/smb.conf.backup"
 done
 echo -e "\e[32mBacking up Done\e[m"
 
-cat > /etc/samba/smb.conf << EOF
+cat > smb.conf << EOF
 
 [global]
 workgroup = WORKGROUP 
@@ -60,7 +60,7 @@ encrypt passwords = yes
 smb passwd file = /etc/samba/smbpasswd
   
 [home]
-comment = "put your real name here without the quotes"
+comment = $fullname
 path = /home/<yourSenecaID>
 public = no
 writable = yes
@@ -76,4 +76,5 @@ create mask = 0765
 browseable = no
 
 EOF
-
+check "scp smb.conf $IP2:/etc/samba/smb.conf " "Error when trying to copy SMB.CONF"
+rm -rf smb.conf
