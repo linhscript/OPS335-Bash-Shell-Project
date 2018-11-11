@@ -32,11 +32,11 @@ digit=$( echo "$IP" | awk -F. '{print $3}' )
 #### Checking Internet Connection###
 check "ping -c 3 google.ca > /dev/null" "Can not ping GOOGLE.CA, check your Internet connection "
 
-## Installing BIND Package ######
+## Installing Samba Package ######
 echo 
-echo "############ Installing DNS ###########"
+echo "############ Installing Samba Server ###########"
 echo 
-check "yum install bind* -y" "Can not use Yum to install"
-systemctl start named
-systemctl enable named
+check "yum install samba* -y" "Can not use Yum to install"
+systemctl start smb
+systemctl enable smb
 echo -e "\e[32mInstalling Done\e[m"
