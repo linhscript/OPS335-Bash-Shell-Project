@@ -29,8 +29,18 @@ read -p "What is your IP Address of VM1: " IP1
 read -p "What is your IP Address of VM2: " IP2
 digit=$( echo "$IP" | awk -F. '{print $3}' )
 
-#### Checking Internet Connection###
+#### Checking Internet Connection of HOST###
+echo "Checking Internet Connection"
 check "ping -c 3 google.ca > /dev/null" "Can not ping GOOGLE.CA, check your Internet connection "
+
+
+###--- Checking if can ssh to VM2
+echo "-------Checking SSH Connection---------"
+check "ssh -o ConnectTimeout=5 root@$IP2 ls > /dev/null" "Can not SSH to VM2, fix the problem and run the script again "
+
+###--- Checking VM2 can ping google.ca 
+echo "-------Pinging GOOGLE.CA from VM2---------"
+check "ssh root@$IP2 ping -c 3 google.ca > /dev/null" "Can not ping GOOGLE.CA from VM2, check INTERNET connection then run the script again"
 
 ## Installing Samba Package ######
 echo 
