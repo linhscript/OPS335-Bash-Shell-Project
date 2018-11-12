@@ -55,7 +55,7 @@ echo -e "\e[32mInstalling Done\e[m"
 ### Backup config file ###
 
 echo "Backing up configuration file"
-if [ ! -f ssh $IP2:/etc/samba/smb.conf.backup ]
+if [ ssh $IP2 ! -f /etc/samba/smb.conf.backup ]
 then
 	ssh $IP2 "cp /etc/samba/smb.conf /etc/samba/smb.conf.backup"
 done
