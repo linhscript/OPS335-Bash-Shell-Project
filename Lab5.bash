@@ -22,6 +22,8 @@ then
 	echo "Must run this script by root" >&2
 	exit 1 
 fi
+
+
 list_vms="vm1 vm2"
 read -p "What is your Seneca username: " username
 read -p "What is your FULL NAME: " fullname
@@ -50,12 +52,14 @@ echo "-------Restarting Named-----------"
 systemctl restart named
 echo -e "--------\e[32mRestarted Done \e[0m----------"
 
-###--- Checking if can ssh to VM2
+###--- Checking if can ssh to VM1 and VM2---------
 echo "-------Checking SSH Connection---------"
+check "ssh -o ConnectTimeout=5 root@$IP1 ls > /dev/null" "Can not SSH to VM1, fix the problem and run the script again "
 check "ssh -o ConnectTimeout=5 root@$IP2 ls > /dev/null" "Can not SSH to VM2, fix the problem and run the script again "
 
-###--- Checking VM2 can ping google.ca 
+###--- Checking VM1 and VM2 can ping google.ca 
 echo "-------Pinging GOOGLE.CA from VM2---------"
+check "ssh root@$IP1 ping -c 3 google.ca > /dev/null" "Can not ping GOOGLE.CA from VM1, check INTERNET connection then run the script again"
 check "ssh root@$IP2 ping -c 3 google.ca > /dev/null" "Can not ping GOOGLE.CA from VM2, check INTERNET connection then run the script again"
 
 
@@ -75,7 +79,7 @@ echo -e "\e[32mInstalling Done\e[m"
 ### Backup config file ###
 
 echo "Backing up configuration file"
-if [ ssh $IP2 ! -f /etc/samba/smb.conf.backup ]
+if [ ssh $IP2 ! test -f /etc/samba/smb.conf.backup ]
 then
 	ssh $IP2 "cp /etc/samba/smb.conf /etc/samba/smb.conf.backup"
 done
@@ -88,14 +92,16 @@ workgroup = WORKGROUP
 server string = $fullname
 encrypt passwords = yes
 smb passwd file = /etc/samba/smbpasswd
+hosts allow = 192.168.$digit. 127.0.0.1 192.168.40.
   
 [home]
 comment = $fullname
-path = /home/<yourSenecaID>
+path = /home/$username
 public = no
 writable = yes
 printable = no
 create mask = 0765
+valid users = $username
 
 [homes]
 comment = automatic home share

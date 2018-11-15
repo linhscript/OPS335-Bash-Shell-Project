@@ -201,7 +201,7 @@ cat > ruleto.bash << EOF
 systemctl start iptables
 systemctl enable iptables
 sleep 2
-iptables -F
+iptables -t filter -F
 iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 iptables -A INPUT -i lo -j ACCEPT
 iptables -A INPUT -p udp --dport 53 -j ACCEPT
@@ -294,7 +294,7 @@ cat > ruleot.bash << EOF
 systemctl start iptables
 systemctl enable iptables
 sleep 2
-iptables -F
+iptables -t filter -F
 iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 iptables -A INPUT -i lo -j ACCEPT
 iptables -A INPUT -p udp --dport 53 -s 172.17.15.0/24 -j ACCEPT
@@ -347,7 +347,7 @@ systemctl start iptables
 systemctl enable iptables
 sleep 2
 
-iptables -F
+iptables -t filter -F
 iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 iptables -A INPUT -i lo -j ACCEPT
 iptables -A INPUT -p icmp -s 172.17.15.0/24 -j ACCEPT
