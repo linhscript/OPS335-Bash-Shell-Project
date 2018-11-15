@@ -393,7 +393,7 @@ echo "##############Configuring C7Host################"
 echo "################################################"
 echo "Config named.conf of C7Host"
 
-sed -i 's/allow-query.*;$/allow-query {localhost;192.168.40.0\/24;172.17.15.0\/24; $fdigit.0\/24;};/' /etc/named.conf
+sed -i 's/allow-query.*;$/allow-query {localhost;192.168.40.0\/24;172.17.15.0\/24;'$fdigit'.0\/24;};/' /etc/named.conf
 sed -i 's/forwarders.*;$/forwarders { 192.168.40.2;172.17.15.2;172.17.15.3; };/' /etc/named.conf
 
 ###Backing up system, make new folders
