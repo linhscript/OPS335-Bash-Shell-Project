@@ -22,7 +22,7 @@ then
 	echo "Must run this script by root" >&2
 	exit 1 
 fi
-
+list_vms="vm1 vm2"
 read -p "What is your Seneca username: " username
 read -p "What is your FULL NAME: " fullname
 read -p "What is your IP Address of VM1: " IP1
@@ -33,6 +33,22 @@ digit=$( echo "$IP" | awk -F. '{print $3}' )
 echo "Checking Internet Connection"
 check "ping -c 3 google.ca > /dev/null" "Can not ping GOOGLE.CA, check your Internet connection "
 
+### Checking if VM1 and VM2 are running
+echo "Checking running machine"
+for i in $list_vms
+do 
+	if ! virsh list | grep -iqs $i
+	then
+		echo -e "\e[1;31mMust turn on $i  \e[0m" >&2
+		exit 2
+	fi
+
+done
+
+### Restarting named service
+echo "-------Restarting Named-----------"
+systemctl restart named
+echo -e "--------\e[32mRestarted Done \e[0m----------"
 
 ###--- Checking if can ssh to VM2
 echo "-------Checking SSH Connection---------"
@@ -41,6 +57,10 @@ check "ssh -o ConnectTimeout=5 root@$IP2 ls > /dev/null" "Can not SSH to VM2, fi
 ###--- Checking VM2 can ping google.ca 
 echo "-------Pinging GOOGLE.CA from VM2---------"
 check "ssh root@$IP2 ping -c 3 google.ca > /dev/null" "Can not ping GOOGLE.CA from VM2, check INTERNET connection then run the script again"
+
+
+echo "#### Checking COMPLETED ####"
+########################### Checking COMPLETED ####################
 
 ## Installing Samba Package ######
 echo 
@@ -88,3 +108,5 @@ browseable = no
 EOF
 check "scp smb.conf $IP2:/etc/samba/smb.conf " "Error when trying to copy SMB.CONF"
 rm -rf smb.conf
+
+setsebool -P samba_enable_home_dirs on
