@@ -23,10 +23,11 @@ then
 	exit 1 
 fi
 
-
+######## INPUT  ###########
 list_vms="vm1 vm2"
 read -p "What is your Seneca username: " username
 read -p "What is your FULL NAME: " fullname
+read -p "Put your password: " password
 read -p "What is your IP Address of VM1: " IP1
 read -p "What is your IP Address of VM2: " IP2
 digit=$( echo "$IP" | awk -F. '{print $3}' )
@@ -115,4 +116,7 @@ EOF
 check "scp smb.conf $IP2:/etc/samba/smb.conf " "Error when trying to copy SMB.CONF"
 rm -rf smb.conf
 
-setsebool -P samba_enable_home_dirs on
+## Selinux allows SMB
+ssh IP2 setsebool -P samba_enable_home_dirs on
+useradd -m test1
+echo "test1:$pass" | chpasswd

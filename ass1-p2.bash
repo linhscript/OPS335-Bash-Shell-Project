@@ -27,6 +27,8 @@ do
 	echo -e "\e[33mGo make a backup \e[0m" >&2
 	exit 6
 done
+
+########## INPUT from USER #######
 read -p "What is your IP Adress of VM1: " IP
 fdigit=$( echo "$IP" | awk -F. '{print $1"."$2"."$3}' )
 check "ifconfig | grep $fdigit > /dev/null" "Wrong Ip address of VM1"
