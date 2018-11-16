@@ -117,7 +117,7 @@ options {
 	directory "/var/named";
         allow-query { localhost;any;};
         forwarders {$fdigit.1;};
-        allow-recursion {172.17.15.0/24;};
+        allow-recursion {localhost;172.17.15.0/24;};
 };
 
 zone "." IN {
