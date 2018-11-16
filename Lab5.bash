@@ -123,7 +123,17 @@ ssh IP2 setsebool -P samba_enable_home_dirs on
 useradd -m username 2> /dev/null
 echo "test1:$password" | chpasswd
 
+
+# Config iptables
+echo "Adding Firewall Rules"
 iptables -A PREROUTING -t nat -p tcp --dport 445 -j DNAT --to 192.168.$digit.3:8445
 iptables -I FORWARD -p tcp -d 192.168.$digit.3 --dport 445 -j ACCEPT
 
+ssh IP2 iptables -I INPUT -p tcp --dport 445 -j ACCEPT
+
+echo 
+echo -e "\e[32m########## COMPLETED ########\e[0m"
+echo "Using these information to login SAMBA"
+echo "Username: " $username
+echo "Password: " $password
 
