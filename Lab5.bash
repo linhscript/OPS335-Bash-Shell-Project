@@ -119,17 +119,17 @@ rm -rf smb.conf
 ## Selinux allows SMB
 ssh IP2 setsebool -P samba_enable_home_dirs on
 
-## Add user and create smb password
-useradd -m username 2> /dev/null
-echo "test1:$password" | chpasswd
-
+## Add user and create smb password to VM2
+ssh $IP2 useradd -m username 2> /dev/null
+ssh $IP2 echo "test1:$password" | chpasswd
+ssh $IP2 echo -ne "$password\n$passwd\n" | smbpasswd -a -s $username
 
 # Config iptables
 echo "Adding Firewall Rules"
 iptables -A PREROUTING -t nat -p tcp --dport 445 -j DNAT --to 192.168.$digit.3:8445
 iptables -I FORWARD -p tcp -d 192.168.$digit.3 --dport 445 -j ACCEPT
 
-ssh IP2 iptables -I INPUT -p tcp --dport 445 -j ACCEPT
+ssh $IP2 iptables -I INPUT -p tcp --dport 445 -j ACCEPT
 
 echo 
 echo -e "\e[32m########## COMPLETED ########\e[0m"
