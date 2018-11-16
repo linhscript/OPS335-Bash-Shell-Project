@@ -235,7 +235,7 @@ EOF
 
 #### Network Configuration for TORONTO ######
 check "ssh root@172.17.15.2 grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-eth0 > ipconto.txt" "File or directory not exist"
-echo "DNS1="172.17.15.2"" >> ipconto.txt
+echo "DNS1="127.0.0.1"" >> ipconto.txt
 echo "PEERDNS=no" >> ipconto.txt
 echo "DOMAIN=towns.ontario.ops" >> ipconto.txt
 check "scp ipconto.txt root@172.17.15.2:/etc/sysconfig/network-scripts/ifcfg-eth0 > /dev/null" "Go find the errors yourself :D"
@@ -325,7 +325,8 @@ EOF
 
 #### Network Configuration for OTTAWA ######
 check "ssh root@172.17.15.3 grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-eth0 > ipconot.txt " "Can not obtain ipconfig from OTTAWA"
-echo "DNS1="172.17.15.2"" >> ipconot.txt
+echo "DNS1="127.0.0.1"" >> ipconot.txt
+echo "DNS2="172.17.15.2"" >> ipconot.txt
 echo "PEERDNS=no" >> ipconot.txt
 echo "DOMAIN=towns.ontario.ops" >> ipconot.txt
 check "scp ipconot.txt root@172.17.15.3:/etc/sysconfig/network-scripts/ifcfg-eth0 " "Can not copy ipconfig file to OTTAWA"
@@ -375,6 +376,7 @@ EOF
 #### Network Configuration for CLOYNE ######
 check "ssh root@172.17.15.100 grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-eth0 > ipconcl.txt " "Error when obtaining ipconfig file to Cloyne"
 echo "DNS1="172.17.15.2"" >> ipconcl.txt
+echo "DNS2="172.17.15.3"" >> ipconcl.txt
 echo "PEERDNS=no" >> ipconcl.txt
 echo "DOMAIN=towns.ontario.ops" >> ipconcl.txt
 check "scp ipconcl.txt root@172.17.15.100:/etc/sysconfig/network-scripts/ifcfg-eth0 > /dev/null " "Error when copying ipconfig file to CLOYNE"
