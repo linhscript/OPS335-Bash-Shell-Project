@@ -3,6 +3,9 @@
 ############### CHECKING ALL THE REQUIREMENT BEFORE RUNNING THE SCRIPT ############################
 function checkall {
 	### Backing up before runnning the script
+	echo -e "\e[1;31m--------WARNING----------"
+	echo -e "\e[1mBackup your virtual machine to run this script \e[0m"
+	echo
 	read -p "Did you make a backup ? [Y/N]: " choice
 	while [[ "$choice" != "Y" && "$choice" != "Yes" && "$choice" != "y" && "$choice" != "yes" ]]
 	do
@@ -11,11 +14,28 @@ function checkall {
 	done
 
 	### Run script by Root
+	if [ `id -u` -ne 0 ]
+	then
+		echo "Must run this script by root" >&2
+		exit 1 
+	fi
+
+	### Checking VMs need to be online
+	vms_name="toronto ottawa cloyne"
+	vms_ip="172.17.15.2 172.17.15.3 172.17.15.100"
+
+
+
+
+
+
+
+
+
 
 
 }
-list_vms="toronto ottawa cloyne"
-vms="172.17.15.2 172.17.15.3 172.17.15.100"
+
 function check() {
 	if eval $1
 	then
@@ -32,9 +52,7 @@ function check() {
 	fi	
 }
 
-echo -e "\e[1;31m--------WARNING----------"
-echo -e "\e[1mBackup your virtual machine to run this script \e[0m"
-echo
+
 
 
 ########## INPUT from USER #######
@@ -47,17 +65,11 @@ intclone=$(ifconfig | grep -B 1 172.17.15.1 | head -1 | awk -F: '{print $1}')
 read -p "What is your Matrix account ID: " userid
 
 
-### Check if you are root ###
-if [ `id -u` -ne 0 ]
-then
-	echo "Must run this script by root" >&2
-	exit 1 
-fi
 
 ### Check vms are online: Toronto, Ottawa
 echo "Checking VMs status"
 
-for i in $list_vms
+for i in $vms_name
 do 
 	if ! virsh list | grep -iqs $i
 	then
