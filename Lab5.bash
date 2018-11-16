@@ -128,8 +128,13 @@ ssh $IP2 echo -ne "$password\n$passwd\n" | smbpasswd -a -s $username
 echo "Adding Firewall Rules"
 iptables -A PREROUTING -t nat -p tcp --dport 445 -j DNAT --to 192.168.$digit.3:445
 iptables -I FORWARD -p tcp -d 192.168.$digit.3 --dport 445 -j ACCEPT
+iptables-save > /etc/sysconfig/iptables
+service iptables save
+
 
 ssh $IP2 iptables -I INPUT -p tcp --dport 445 -j ACCEPT
+ssh $IP2 iptables-save > /etc/sysconfig/iptables
+ssh $IP2 service iptables save
 
 echo 
 echo -e "\e[32m########## COMPLETED ########\e[0m"
