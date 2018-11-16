@@ -165,7 +165,7 @@ cloyne          IN	A	172.17.15.100
 kingston        IN	A	172.17.15.5
 coburg          IN	A	172.17.15.6
 milton          IN	A	172.17.15.8
-towns.ontario.ops.	IN	MX	10 kingston.towns.ontario.ops
+towns.ontario.ops.	IN	MX	10 kingston.towns.ontario.ops.
 
 EOF
 check "scp 'mydb-for-towns.ontario.ops' root@172.17.15.2:/var/named/ > /dev/null" "Error when copying FORWARD Zone file to TORONTO"

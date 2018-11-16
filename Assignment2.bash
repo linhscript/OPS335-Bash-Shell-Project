@@ -1,8 +1,8 @@
 #!/bin/bash
 
 ############### CHECKING ALL THE REQUIREMENT BEFORE RUNNING THE SCRIPT ############################
-function checkall {
-	### Backing up before runnning the script
+function require {
+	### 1.Backing up before runnning the script
 	echo -e "\e[1;31m--------WARNING----------"
 	echo -e "\e[1mBackup your virtual machine to run this script \e[0m"
 	echo
@@ -13,20 +13,28 @@ function checkall {
 		exit 6
 	done
 
-	### Run script by Root
+	### 2.Run script by Root
 	if [ `id -u` -ne 0 ]
 	then
 		echo "Must run this script by root" >&2
 		exit 1 
 	fi
 
-	### Checking VMs need to be online
+	### 3.Checking VMs need to be online
 	vms_name="toronto ottawa cloyne"
 	vms_ip="172.17.15.2 172.17.15.3 172.17.15.100"
 
+	echo "Checking VMs status"
+	for i in $vms_name
+	do 
+		if ! virsh list | grep -iqs $i
+		then
+			echo -e "\e[1;31mMust turn on $i  \e[0m" >&2
+			exit 2
+		fi
+	done
 
-
-
+	### 4.Pinging check
 
 
 
@@ -67,17 +75,7 @@ read -p "What is your Matrix account ID: " userid
 
 
 ### Check vms are online: Toronto, Ottawa
-echo "Checking VMs status"
 
-for i in $vms_name
-do 
-	if ! virsh list | grep -iqs $i
-	then
-		echo -e "\e[1;31mMust turn on $i  \e[0m" >&2
-		exit 2
-	fi
-
-done
 
 echo "-------Restarting Named-----------"
 systemctl restart named
