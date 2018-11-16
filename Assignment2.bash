@@ -1,7 +1,19 @@
 #!/bin/bash
 
 ############### CHECKING ALL THE REQUIREMENT BEFORE RUNNING THE SCRIPT ############################
+function checkall {
+	### Backing up before runnning the script
+	read -p "Did you make a backup ? [Y/N]: " choice
+	while [[ "$choice" != "Y" && "$choice" != "Yes" && "$choice" != "y" && "$choice" != "yes" ]]
+	do
+		echo -e "\e[33mGo make a backup \e[0m" >&2
+		exit 6
+	done
 
+	### Run script by Root
+
+
+}
 list_vms="toronto ottawa cloyne"
 vms="172.17.15.2 172.17.15.3 172.17.15.100"
 function check() {
@@ -23,12 +35,7 @@ function check() {
 echo -e "\e[1;31m--------WARNING----------"
 echo -e "\e[1mBackup your virtual machine to run this script \e[0m"
 echo
-read -p "Did you make a backup ? [Y/N]: " choice
-while [[ "$choice" != "Y" && "$choice" != "Yes" && "$choice" != "y" && "$choice" != "yes" ]]
-do
-	echo -e "\e[33mGo make a backup \e[0m" >&2
-	exit 6
-done
+
 
 ########## INPUT from USER #######
 read -p "What is your IP Adress of VM1: " IP
