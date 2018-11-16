@@ -1,4 +1,7 @@
 #!/bin/bash
+
+############### CHECKING ALL THE REQUIREMENT BEFORE RUNNING THE SCRIPT ############################
+
 list_vms="toronto ottawa cloyne"
 vms="172.17.15.2 172.17.15.3 172.17.15.100"
 function check() {
