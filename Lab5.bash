@@ -118,8 +118,8 @@ ssh $IP2 setsebool -P samba_enable_home_dirs on
 
 ## Add user and create smb password to VM2
 ssh $IP2 useradd -m $username 2> /dev/null
-ssh $IP2 '( echo "$username:$password" | chpasswd )'
-ssh $IP2 '( echo -ne "$password\n$password\n" | smbpasswd -a -s $username )'
+ssh $IP2 '( echo '$username:$password' | chpasswd )'
+ssh $IP2 '( echo -ne '$password\n$password\n' | smbpasswd -a -s '$username' )'
 
 # Config iptables
 echo "Adding Firewall Rules"
