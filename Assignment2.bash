@@ -99,10 +99,12 @@ intclone=$(ifconfig | grep -B 1 172.17.15.1 | head -1 | awk -F: '{print $1}')
 read -p "What is your Matrix account ID: " userid
 
 
-
-### Check vms are online: Toronto, Ottawa
-
-
 echo "-------Restarting Named-----------"
 systemctl restart named
 echo -e "--------\e[32mRestarted Done \e[0m----------"
+
+
+### Start CONFIGURATION ###
+
+
+
