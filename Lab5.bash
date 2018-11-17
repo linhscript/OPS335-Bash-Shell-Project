@@ -27,7 +27,7 @@ fi
 list_vms="vm1 vm2"
 read -p "What is your Seneca username: " username
 read -p "What is your FULL NAME: " fullname
-read -s -p "Put your password: " password && echo
+read -s -p "Type your normal password: " password && echo
 read -p "What is your IP Address of VM1: " IP1
 read -p "What is your IP Address of VM2: " IP2
 digit=$( echo "$IP1" | awk -F. '{print $3}' )
@@ -80,7 +80,7 @@ echo -e "\e[32mInstalling Done\e[m"
 ### Backup config file ###
 
 echo "Backing up configuration file"
-check "ssh $IP2 ! test -f /etc/samba/smb.conf.backup && ssh $IP2 cp /etc/samba/smb.conf /etc/samba/smb.conf.backup || echo "Backup" "Can not backup smb.conf file"
+check "ssh $IP2 ! test -f /etc/samba/smb.conf.backup && ssh $IP2 cp /etc/samba/smb.conf /etc/samba/smb.conf.backup || echo "Already backed up"" "Can not backup smb.conf file"
 echo -e "\e[32mBacking up Done\e[m"
 
 cat > smb.conf << EOF
