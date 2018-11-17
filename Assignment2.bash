@@ -17,19 +17,20 @@ function check() {
 	fi	
 }
 function require {
-	### ALL INPUT BEFORE CHECKING ####
+	### ALL INPUT BEFORE CHECKING #### -------------------
 	domain="towns.ontario.ops"
 	vms_name=(toronto ottawa kingston coburg milton)   ###-- Put the name in order --  Master Slave Other Machines
 	vms_ip=(172.17.15.2 172.17.15.3 172.17.15.5 172.17.15.6 172.17.15.8)	
 	
-	#### Create Hash Table
+	#### Create Hash Table -------------------------------
 	
 	for (( i=0; i<${#vms_name[@]};i++ ))
 	do
 		declare -A dict+=( [${vms_name[$i]}]=${vms_ip[$i]} )
 	done
 	
-	### 1.Backing up before runnning the script
+	### 1.Backing up before runnning the script ------------------
+
 	echo -e "\e[1;31m--------WARNING----------"
 	echo -e "\e[1mBackup your virtual machine to run this script \e[0m"
 	echo
@@ -55,14 +56,14 @@ function require {
 		done
 	done
 
-	### 2.Run script by Root
+	### 2.Run script by Root ---------------------------------------------
 	if [ `id -u` -ne 0 ]
 	then
 		echo "Must run this script by root" >&2
 		exit 2
 	fi
 
-	### 3.Checking VMs need to be online
+	### 3.Checking VMs need to be online ----------------------------------
 
 	echo "Checking VMs status"
 	for vm in ${vms_name[@]}
@@ -74,7 +75,8 @@ function require {
 		fi
 	done
 	
-	### 4.SSH and Pinging and Update Check
+	### 4.SSH and Pinging and Update Check ------------------------------------
+
 	check "ping -c 3 google.ca > /dev/null" "Host machine can not ping GOOGLE.CA, check INTERNET connection then run the script again"
 		
 	for ssh_vm in ${dict[@]} ## -- Checking VMS -- ##
@@ -84,12 +86,13 @@ function require {
 	check "ssh $ssh_vm yum update -y" "Can not YUM UPDATE from ${!dict[$ssh_vm]}"
 	done
 	
-	### 5.Checking jobs done from Assignment 1
+	### 5.Checking jobs done from Assignment 1 -------------------------
+
 	check "ssh ${vms_ip[0]} host ${vms_name[0]}.$domain > /dev/null 2>&1" "Name service in ${vms_name[0]} is not working"
 	
 }
 
-########## INPUT from USER #######
+########## INPUT from USER ####### --------------------------------
 read -p "What is your IP Adress of VM1: " IP
 fdigit=$( echo "$IP" | awk -F. '{print $1"."$2"."$3}' )
 check "ifconfig | grep $fdigit > /dev/null" "Wrong Ip address of VM1"
