@@ -89,7 +89,7 @@ echo -e "\e[32mBacking up Done\e[m"
 cat > smb.conf << EOF
 
 [global]
-workgroup = WORKGROUP 
+workgroup = SENEDS 
 server string = $fullname
 encrypt passwords = yes
 smb passwd file = /etc/samba/smbpasswd
