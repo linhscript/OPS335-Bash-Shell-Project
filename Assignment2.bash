@@ -18,8 +18,8 @@ function check() {
 }
 function require {
 	### ALL INPUT BEFORE CHECKING ####
-	
-	vms_name=(toronto ottawa kingston coburg milton)
+	domain="towns.ontario.ops"
+	vms_name=(toronto ottawa kingston coburg milton)   ###-- Put the name in order --  Master Slave Other Machines
 	vms_ip=(172.17.15.2 172.17.15.3 172.17.15.5 172.17.15.6 172.17.15.8)	
 	
 	#### Create Hash Table
@@ -48,7 +48,7 @@ function require {
 		done
 		yum install pv -y > /dev/null
 		
-		for bk in $(ls /var/lib/libvirt/images/ | grep \.qcow2$)
+		for bk in $(ls /var/lib/libvirt/images/ | grep -v vm* | grep \.qcow2$)
 		do
 			echo "Backing up bk"
 			pv /var/lib/libvirt/images/$bk | gzip | pv  > /backup/full/$bk.backup.gz
@@ -74,29 +74,20 @@ function require {
 		fi
 	done
 	
-	### 4.SSH and Pinging Check
+	### 4.SSH and Pinging and Update Check
 	check "ping -c 3 google.ca > /dev/null" "Host machine can not ping GOOGLE.CA, check INTERNET connection then run the script again"
 		
 	for ssh_vm in ${dict[@]} ## -- Checking VMS -- ##
 	do
 	check "ssh -o ConnectTimeout=5 $ssh_vm ls > /dev/null" "Can not SSH to ${!dict[$ssh_vm]}, check and run the script again "
 	check "ssh $ssh_vm ping -c 3 google.ca > /dev/null" "Can not ping GOOGLE.CA from ${!dict[$ssh_vm]}, check internet connection then run the script again"
+	check "ssh $ssh_vm yum update -y" "Can not YUM UPDATE from ${!dict[$ssh_vm]}"
 	done
 	
 	### 5.Checking jobs done from Assignment 1
+	check "ssh ${vms_ip[0]} host ${vms_name[0]}.$domain > /dev/null 2>&1" "Name service in ${vms_name[0]} is not working"
 	
-	### 6.Checking jobs done from Assignment 1
-	
-
-
-
-
 }
-
-
-
-
-
 
 ########## INPUT from USER #######
 read -p "What is your IP Adress of VM1: " IP
