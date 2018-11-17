@@ -30,7 +30,7 @@ read -p "What is your FULL NAME: " fullname
 read -s -p "Put your password: " password && echo
 read -p "What is your IP Address of VM1: " IP1
 read -p "What is your IP Address of VM2: " IP2
-digit=$( echo "$IP" | awk -F. '{print $3}' )
+digit=$( echo "$IP1" | awk -F. '{print $3}' )
 
 #### Checking Internet Connection of HOST###
 echo "Checking Internet Connection"
@@ -51,7 +51,7 @@ done
 ### Restarting named service
 echo "-------Restarting Named-----------"
 systemctl restart named
-echo -e "--------\e[32mRestarted Done \e[0m----------"
+echo -e "\e[32mRestarted Done \e[0m"
 
 ###--- Checking if can ssh to VM1 and VM2---------
 echo "-------Checking SSH Connection---------"
@@ -80,10 +80,10 @@ echo -e "\e[32mInstalling Done\e[m"
 ### Backup config file ###
 
 echo "Backing up configuration file"
-if [ ssh $IP2 ! test -f /etc/samba/smb.conf.backup ]
+if [ ssh $IP2 "! test -f /etc/samba/smb.conf.backup "]
 then
 	ssh $IP2 "cp /etc/samba/smb.conf /etc/samba/smb.conf.backup"
-done
+fi
 echo -e "\e[32mBacking up Done\e[m"
 
 cat > smb.conf << EOF
@@ -117,12 +117,12 @@ check "scp smb.conf $IP2:/etc/samba/smb.conf " "Error when trying to copy SMB.CO
 rm -rf smb.conf
 
 ## Selinux allows SMB
-ssh IP2 setsebool -P samba_enable_home_dirs on
+ssh $IP2 setsebool -P samba_enable_home_dirs on
 
 ## Add user and create smb password to VM2
 ssh $IP2 useradd -m username 2> /dev/null
-ssh $IP2 echo "test1:$password" | chpasswd
-ssh $IP2 echo -ne "$password\n$passwd\n" | smbpasswd -a -s $username
+ssh $IP2 " echo "$username:$password" | chpasswd "
+ssh $IP2 " echo -ne "$password\n$password\n" | smbpasswd -a -s $username "
 
 # Config iptables
 echo "Adding Firewall Rules"
