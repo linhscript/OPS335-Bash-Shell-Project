@@ -80,10 +80,7 @@ echo -e "\e[32mInstalling Done\e[m"
 ### Backup config file ###
 
 echo "Backing up configuration file"
-if [ ssh $IP2 "! test -f /etc/samba/smb.conf.backup "]
-then
-	ssh $IP2 "cp /etc/samba/smb.conf /etc/samba/smb.conf.backup"
-fi
+check "ssh $IP2 ! test -f /etc/samba/smb.conf.backup && ssh $IP2 cp /etc/samba/smb.conf /etc/samba/smb.conf.backup || echo "Backup" "Can not backup smb.conf file"
 echo -e "\e[32mBacking up Done\e[m"
 
 cat > smb.conf << EOF
@@ -121,8 +118,8 @@ ssh $IP2 setsebool -P samba_enable_home_dirs on
 
 ## Add user and create smb password to VM2
 ssh $IP2 useradd -m username 2> /dev/null
-ssh $IP2 " echo "$username:$password" | chpasswd "
-ssh $IP2 " echo -ne "$password\n$password\n" | smbpasswd -a -s $username "
+ssh $IP2 '( echo "$username:$password" | chpasswd )'
+ssh $IP2 '( echo -ne "$password\n$password\n" | smbpasswd -a -s $username )'
 
 # Config iptables
 echo "Adding Firewall Rules"
