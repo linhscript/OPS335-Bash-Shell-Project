@@ -2,6 +2,17 @@
 
 ############### CHECKING ALL THE REQUIREMENT BEFORE RUNNING THE SCRIPT ############################
 function require {
+	### ALL INPUT BEFORE CHECKING ####
+	
+	vms_name=(toronto ottawa cloyne)
+	vms_ip=(172.17.15.2 172.17.15.3 172.17.15.100)	
+	
+	for (( i=0; i<${#vms_name[@]};i++ ))
+	do
+		declare -A dict+=( [${vms_name[$i]}]=${vms_ip[$i]} )
+	done
+	
+	
 	### 1.Backing up before runnning the script
 	echo -e "\e[1;31m--------WARNING----------"
 	echo -e "\e[1mBackup your virtual machine to run this script \e[0m"
@@ -10,7 +21,7 @@ function require {
 	while [[ "$choice" != "Y" && "$choice" != "Yes" && "$choice" != "y" && "$choice" != "yes" ]]
 	do
 		echo -e "\e[33mGo make a backup \e[0m" >&2
-		exit 6
+		exit 1
 	done
 
 	### 2.Run script by Root
@@ -21,15 +32,13 @@ function require {
 	fi
 
 	### 3.Checking VMs need to be online
-	vms_name="toronto ottawa cloyne"
-	vms_ip="172.17.15.2 172.17.15.3 172.17.15.100"
 
 	echo "Checking VMs status"
-	for i in $vms_name
+	for vm in $vms_name
 	do 
-		if ! virsh list | grep -iqs $i
+		if ! virsh list | grep -iqs $vm
 		then
-			echo -e "\e[1;31mMust turn on $i  \e[0m" >&2
+			echo -e "\e[1;31mMust turn on $vm  \e[0m" >&2
 			exit 2
 		fi
 	done
