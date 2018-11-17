@@ -1,17 +1,33 @@
 #!/bin/bash
 
 ############### CHECKING ALL THE REQUIREMENT BEFORE RUNNING THE SCRIPT ############################
+function check() {
+	if eval $1
+	then
+		echo -e "\e[32mOK. Done \e[0m"
+	else
+		echo
+     		echo
+     		echo -e "\e[0;31mWARNING\e[m"
+     		echo
+     		echo
+     		echo $2
+     		echo
+     		exit 1
+	fi	
+}
 function require {
 	### ALL INPUT BEFORE CHECKING ####
 	
 	vms_name=(toronto ottawa cloyne)
 	vms_ip=(172.17.15.2 172.17.15.3 172.17.15.100)	
 	
+	#### Create Hash Table
+	
 	for (( i=0; i<${#vms_name[@]};i++ ))
 	do
 		declare -A dict+=( [${vms_name[$i]}]=${vms_ip[$i]} )
 	done
-	
 	
 	### 1.Backing up before runnning the script
 	echo -e "\e[1;31m--------WARNING----------"
@@ -34,7 +50,7 @@ function require {
 	### 3.Checking VMs need to be online
 
 	echo "Checking VMs status"
-	for vm in $vms_name
+	for vm in ${vms_name[@]}
 	do 
 		if ! virsh list | grep -iqs $vm
 		then
@@ -44,7 +60,8 @@ function require {
 	done
 
 	### 4.Pinging check
-
+	# 4.1 Host check
+		
 
 
 
@@ -53,21 +70,7 @@ function require {
 
 }
 
-function check() {
-	if eval $1
-	then
-		echo -e "\e[32mOKAY_Babe. Good job \e[0m"
-	else
-		echo
-     		echo
-     		echo -e "\e[0;31mWARNING\e[m"
-     		echo
-     		echo
-     		echo $2
-     		echo
-     		exit 1
-	fi	
-}
+
 
 
 
