@@ -34,7 +34,7 @@ digit=$( echo "$IP1" | awk -F. '{print $3}' )
 
 #### Checking Internet Connection of HOST###
 echo "Checking Internet Connection"
-check "ping -c 3 google.ca > /dev/null" "Can not ping GOOGLE.CA, check your Internet connection "
+check "ping -c 3 google.ca > /dev/null" "Host Machine can not ping GOOGLE.CA, check your Internet connection "
 
 ### Checking if VM1 and VM2 are running
 echo "Checking running machine"
@@ -117,7 +117,7 @@ rm -rf smb.conf
 ssh $IP2 setsebool -P samba_enable_home_dirs on
 
 ## Add user and create smb password to VM2
-ssh $IP2 useradd -m username 2> /dev/null
+ssh $IP2 useradd -m $username 2> /dev/null
 ssh $IP2 '( echo "$username:$password" | chpasswd )'
 ssh $IP2 '( echo -ne "$password\n$password\n" | smbpasswd -a -s $username )'
 
