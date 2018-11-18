@@ -118,7 +118,7 @@ echo "DNS1="172.17.15.2"" >> ipconf.txt
 echo "DNS2="172.17.15.3"" >> ipconf.txt
 echo "PEERDNS=no" >> ipconf.txt
 echo "DOMAIN=towns.ontario.ops" >> ipconf.txt
-check "scp ipconf.txt 172.17.15.5:/etc/sysconfig/network-scripts/ifcfg-eth0 > /dev/null" "Go find the errors yourself :D"
+check "scp ipconf.txt 172.17.15.5:/etc/sysconfig/network-scripts/ifcfg-eth0 > /dev/null" "Can not copy ipconf to KINGSTON"
 rm -rf ipconf.txt > /dev/null
 
 # Create user
@@ -170,11 +170,21 @@ sleep 2
 # Iptables
 ssh 172.17.15.5 iptables -C INPUT -p tcp --dport 143 -s 172.17.15.0/24 -j ACCEPT > /dev/null || ssh 172.17.15.5 iptables -I INPUT -p tcp --dport 143 -s 172.17.15.0/24 -j ACCEPT
 
-
-
-
+## KINGSTON DONE ####
 
 ## COBURG MACHINE
+
+# Network and hostname 
+
+ssh 172.17.15.6 echo coburg.towns.ontario.ops > /etc/hostname
+check "ssh 172.17.15.6 grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-eth0 > ipconf.txt" "File or directory not exist"
+echo "DNS1="172.17.15.2"" >> ipconf.txt
+echo "DNS2="172.17.15.3"" >> ipconf.txt
+echo "PEERDNS=no" >> ipconf.txt
+echo "DOMAIN=towns.ontario.ops" >> ipconf.txt
+check "scp ipconf.txt 172.17.15.6:/etc/sysconfig/network-scripts/ifcfg-eth0 > /dev/null" "Can not copy ipconf to COBURG"
+rm -rf ipconf.txt > /dev/null
+
 # Create user
 echo -e "\e[1;35mCreate regular user\e[m"
 ssh 172.17.15.6 useradd -m $username 2> /dev/null
