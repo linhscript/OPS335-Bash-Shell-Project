@@ -97,17 +97,28 @@ function require {
 read -p "What is your Seneca username: " username
 read -p "What is your FULL NAME: " fullname
 read -s -p "Type your normal password: " password && echo
-IP1=$(cat /var/named/mydb-for-* | grep ^vm1 | head -1 | awk '{print $4}')
-IP2=$(cat /var/named/mydb-for-* | grep ^vm2 | head -1 | awk '{print $4}')
+IP=$(cat /var/named/mydb-for-* | grep ^vm1 | head -1 | awk '{print $4}')
 digit=$(cat /var/named/mydb-for-* | grep ^vm2 | head -1 | awk '{print $4}' | cut -d. -f3)
 
 
-echo "-------Restarting Named-----------"
+echo "\e[1;35mRestarting Named\e[m"
 systemctl restart named
-echo -e "--------\e[32mRestarted Done \e[0m----------"
+echo -e "\e[32mRestarted Done \e[m"
 
 
 ### Start CONFIGURATION ###
 
+## KINGSTON MACHINE ###
+# Create user
+echo -e "\e[1;35mCreate regular user\e[m"
+ssh 172.17.15.5 useradd -m $username 2> /dev/null
+ssh 172.17.15.5 '( echo '$username:$password' | chpasswd )'
+echo -e "\e[32mUser Created \e[m"
 
+# Install packages
+echo -e "\e[1;35mInstall packages\e[m"
+ssh 172.17.15.5 yum install -y mailx postfix
+echo -e "\e[32mDone Installation \e[m"
 
+# Set up iptables
+#open port smtp
