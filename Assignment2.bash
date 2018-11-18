@@ -109,6 +109,7 @@ echo -e "\e[32mRestarted Done \e[m"
 ### Start CONFIGURATION ###
 
 ## KINGSTON MACHINE ###
+
 # Create user
 echo -e "\e[1;35mCreate regular user\e[m"
 ssh 172.17.15.5 useradd -m $username 2> /dev/null
@@ -117,8 +118,38 @@ echo -e "\e[32mUser Created \e[m"
 
 # Install packages
 echo -e "\e[1;35mInstall packages\e[m"
-ssh 172.17.15.5 yum install -y mailx postfix
+check "ssh 172.17.15.5 yum install -y mailx postfix" "Can not install mailx and postfix"
 echo -e "\e[32mDone Installation \e[m"
 
+# /Etc/main.cf file
+cat > main.cf << EOF
+queue_directory = /var/spool/postfix
+command_directory = /usr/sbin
+daemon_directory = /usr/libexec/postfix
+data_directory = /var/lib/postfix
+mail_owner = postfix
+mydomain = towns.ontario.ops
+myorigin = \$mydomain
+inet_interfaces = all
+inet_protocols = all
+mydestination =  \$myhostname
+unknown_local_recipient_reject_code = 550
+relayhost = coburg.towns.ontario.ops
+alias_maps = hash:/etc/aliases
+alias_database = hash:/etc/aliases
+debug_peer_level = 2
+debugger_command =
+	 PATH=/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin
+	 ddd \$daemon_directory/$process_name \$process_id & sleep 5
+sendmail_path = /usr/sbin/sendmail.postfix
+newaliases_path = /usr/bin/newaliases.postfix
+mailq_path = /usr/bin/mailq.postfix
+setgid_group = postdrop
+html_directory = no
+manpage_directory = /usr/share/man
+sample_directory = /usr/share/doc/postfix-2.10.1/samples
+readme_directory = /usr/share/doc/postfix-2.10.1/README_FILES
+ 
+EOF
 # Set up iptables
 #open port smtp
