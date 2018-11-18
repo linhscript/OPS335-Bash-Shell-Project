@@ -1,5 +1,5 @@
 # OPS335
-Script for study purpose. Not using for cheating. You can use with your own responsibility
+Script for study purposes only. Not used for cheating. USE AT YOUR OWN RISK
 
 
 All the script should be running on the host machine (centos7)

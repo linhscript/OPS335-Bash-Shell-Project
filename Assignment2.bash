@@ -131,6 +131,8 @@ echo -e "\e[32mUser Created \e[m"
 echo -e "\e[1;35mInstall packages\e[m"
 check "ssh 172.17.15.5 yum install -y mailx postfix" "Can not install mailx and postfix"
 echo -e "\e[32mDone Installation \e[m"
+check "ssh 172.17.15.5 systemctl start postfix" "Can not start services on COBURG"
+check "ssh 172.17.15.5 systemctl enable postfix" "Can not enable services on COBURG"
 
 # /Etc/main.cf file
 cat > main.cf << EOF
@@ -170,7 +172,7 @@ sleep 2
 # Iptables
 ssh 172.17.15.5 iptables -C INPUT -p tcp --dport 143 -s 172.17.15.0/24 -j ACCEPT > /dev/null || ssh 172.17.15.5 iptables -I INPUT -p tcp --dport 143 -s 172.17.15.0/24 -j ACCEPT
 
-## KINGSTON DONE ####
+## --------KINGSTON DONE------------ ####
 
 ## COBURG MACHINE
 
@@ -195,7 +197,8 @@ echo -e "\e[32mUser Created \e[m"
 echo -e "\e[1;35mInstall packages\e[m"
 check "ssh 172.17.15.6 yum install -y mailx postfix dovecot" "Can not install mailx and postfix and dovecot"
 echo -e "\e[32mDone Installation \e[m"
-
+check "ssh 172.17.15.6 systemctl start postfix && systemctl start dovecot" "Can not start services on COBURG"
+check "ssh 172.17.15.6 systemctl enable postfix && systemctl enable dovecot" "Can not enable services on COBURG"
 # /Etc/postfix/main.cf
 cat > main.cf << EOF
 queue_directory = /var/spool/postfix
@@ -227,6 +230,52 @@ sample_directory = /usr/share/doc/postfix-2.10.1/samples
 readme_directory = /usr/share/doc/postfix-2.10.1/README_FILES
 
 EOF
+
+check "scp main.cf 172.17.15.6:/etc/postfix/main.cf" "Can not copy main.cf to coburg "
+rm -rf main.cf > /dev/null
+sleep 2
+
+# Aliases
+
+ssh 172.17.15.6 "sed 's/^#root.*/root = "$username"/' /etc/aliases "
+
+
+# Iptables
+ssh 172.17.15.6 iptables -C INPUT -p tcp --dport 143 -s 172.17.15.0/24 -j ACCEPT > /dev/null || ssh 172.17.15.6 iptables -I INPUT -p tcp --dport 143 -s 172.17.15.0/24 -j ACCEPT
+
+## --------COBURG DONE------------ ####
+
+
+## MILTON MACHINE
+# Network and hostname 
+
+ssh 172.17.15.8 echo milton.towns.ontario.ops > /etc/hostname
+check "ssh 172.17.15.8 grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-eth0 > ipconf.txt" "File or directory not exist"
+echo "DNS1="172.17.15.2"" >> ipconf.txt
+echo "DNS2="172.17.15.3"" >> ipconf.txt
+echo "PEERDNS=no" >> ipconf.txt
+echo "DOMAIN=towns.ontario.ops" >> ipconf.txt
+check "scp ipconf.txt 172.17.15.8:/etc/sysconfig/network-scripts/ifcfg-eth0 > /dev/null" "Can not copy ipconf to MILTON"
+rm -rf ipconf.txt > /dev/null
+
+# Create user
+echo -e "\e[1;35mCreate regular user\e[m"
+ssh 172.17.15.8 useradd -m $username 2> /dev/null
+ssh 172.17.15.8 '( echo '$username:$password' | chpasswd )'
+echo -e "\e[32mUser Created \e[m"
+
+# Install packages
+echo -e "\e[1;35mInstall packages\e[m"
+check "ssh 172.17.15.8 yum install -y samba*" "Can not install samba"
+echo -e "\e[32mDone Installation \e[m"
+check "ssh 172.17.15.8 systemctl start postfix && systemctl start dovecot" "Can not start services on COBURG"
+check "ssh 172.17.15.8 systemctl enable postfix && systemctl enable dovecot" "Can not enable services on COBURG"
+
+
+## --------MILTON DONE------------ ####
+## TORONTO MACHINE
+# MX Record
+ssh 172.17.15.2 "sed 's/.*MX.*/town.ontario.ops IN A 10 coburg.towns.ontario.ops.\ntown.ontario.ops IN A 20 kingston.towns.ontario.ops./' /var/named/mydb-for-towns.ontario.ops "
 
 
 # Set up iptables
