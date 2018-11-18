@@ -201,7 +201,9 @@ echo -e "\e[1;35mInstall packages\e[m"
 check "ssh 172.17.15.6 yum install -y mailx postfix dovecot" "Can not install mailx and postfix and dovecot"
 echo -e "\e[32mDone Installation \e[m"
 check "ssh 172.17.15.6 systemctl start postfix" "Can not start services on COBURG"
+check "ssh 172.17.15.6 systemctl start dovecot" "Can not start services on COBURG"
 check "ssh 172.17.15.6 systemctl enable postfix" "Can not enable services on COBURG"
+check "ssh 172.17.15.6 systemctl enable dovecot" "Can not enable services on COBURG"
 # /Etc/postfix/main.cf
 cat > main.cf << EOF
 queue_directory = /var/spool/postfix
@@ -339,10 +341,10 @@ do
 	$password
 EOF
 	ssh 172.17.15.8 mkdir -p /documents/private/$users 2> /dev/null
-	groupadd group$users 2>/dev/null
-	gpasswd -M $users,$username-admin group$users 2> /dev/null
-	chown -R root:group$users /documents/private/$users 2> /dev/null
-	chmod -R 770 /documents/private/$users 2> /dev/null
+	ssh 172.17.15.8 groupadd group$users 2>/dev/null
+	ssh 172.17.15.8 gpasswd -M $users,$username-admin group$users 2> /dev/null
+	ssh 172.17.15.8 chown -R root:group$users /documents/private/$users 2> /dev/null
+	ssh 172.17.15.8 chmod -R 770 /documents/private/$users 2> /dev/null
 done
 ssh 172.17.15.8 mkdir -p /documents/shared/readonly 2> /dev/null
 ssh 172.17.15.8 chmod -R 775 /documents/shared/readonly 2> /dev/null
