@@ -132,7 +132,7 @@ iptables-save > /etc/sysconfig/iptables
 service iptables save
 
 
-ssh $IP2 iptables -I INPUT -p tcp --dport 445 -j ACCEPT
+ssh $IP2 iptables -C INPUT -p tcp --dport 445 -j ACCEPT || ssh $IP2 iptables -I INPUT -p tcp --dport 445 -j ACCEPT
 ssh $IP2 iptables-save > /etc/sysconfig/iptables
 ssh $IP2 service iptables save
 
