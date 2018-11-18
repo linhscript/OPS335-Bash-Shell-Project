@@ -171,8 +171,8 @@ rm -rf main.cf > /dev/null
 sleep 2
 
 # Iptables
-ssh 172.17.15.5 iptables -C INPUT -p tcp --dport 25 -j ACCEPT > /dev/null || ssh 172.17.15.5 iptables -I INPUT -p tcp --dport 25 -j ACCEPT
-ssh 172.17.15.5 iptables -C INPUT -p udp --dport 25 -j ACCEPT > /dev/null || ssh 172.17.15.5 iptables -I INPUT -p udp --dport 25 -j ACCEPT
+ssh 172.17.15.5 iptables -C INPUT -p tcp --dport 25 -j ACCEPT 2> /dev/null || ssh 172.17.15.5 iptables -I INPUT -p tcp --dport 25 -j ACCEPT
+ssh 172.17.15.5 iptables -C INPUT -p udp --dport 25 -j ACCEPT 2> /dev/null || ssh 172.17.15.5 iptables -I INPUT -p udp --dport 25 -j ACCEPT
 iptables-save > /etc/sysconfig/iptables
 service iptables save
 ## --------KINGSTON DONE------------ ####
@@ -296,9 +296,9 @@ ssh 172.17.15.6 "sed -i 's/^#root.*/root = "$username"/' /etc/aliases "
 
 
 # Iptables
-ssh 172.17.15.6 iptables -C INPUT -p tcp --dport 143 -s 172.17.15.0/24 -j ACCEPT > /dev/null || ssh 172.17.15.6 iptables -I INPUT -p tcp --dport 143 -s 172.17.15.0/24 -j ACCEPT
-ssh 172.17.15.6 iptables -C INPUT -p tcp --dport 25 -j ACCEPT > /dev/null || ssh 172.17.15.6 iptables -I INPUT -p tcp --dport 25 -j ACCEPT
-ssh 172.17.15.6 iptables -C INPUT -p udp --dport 25 -j ACCEPT > /dev/null || ssh 172.17.15.6 iptables -I INPUT -p udp --dport 25 -j ACCEPT
+ssh 172.17.15.6 iptables -C INPUT -p tcp --dport 143 -s 172.17.15.0/24 -j ACCEPT 2> /dev/null || ssh 172.17.15.6 iptables -I INPUT -p tcp --dport 143 -s 172.17.15.0/24 -j ACCEPT
+ssh 172.17.15.6 iptables -C INPUT -p tcp --dport 25 -j ACCEPT 2> /dev/null || ssh 172.17.15.6 iptables -I INPUT -p tcp --dport 25 -j ACCEPT
+ssh 172.17.15.6 iptables -C INPUT -p udp --dport 25 -j ACCEPT 2> /dev/null || ssh 172.17.15.6 iptables -I INPUT -p udp --dport 25 -j ACCEPT
 iptables-save > /etc/sysconfig/iptables
 service iptables save
 ## --------COBURG DONE------------ ####
@@ -377,7 +377,7 @@ ssh 172.17.15.8 setsebool -P samba_enable_home_dirs on
 
 # Config iptables
 echo "Adding Firewall Rules"
-ssh 172.17.15.8 iptables -C INPUT -p tcp --dport 445 -j ACCEPT > /dev/null || ssh 172.17.15.8 iptables -I INPUT -p tcp --dport 445 -j ACCEPT
+ssh 172.17.15.8 iptables -C INPUT -p tcp --dport 445 -j ACCEPT 2> /dev/null || ssh 172.17.15.8 iptables -I INPUT -p tcp --dport 445 -j ACCEPT
 ssh 172.17.15.8 iptables-save > /etc/sysconfig/iptables
 ssh 172.17.15.8 service iptables save
 
