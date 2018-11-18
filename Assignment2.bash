@@ -380,7 +380,7 @@ ssh 172.17.15.8 setsebool -P samba_enable_home_dirs on
 
 # Config iptables
 echo "Adding Firewall Rules"
-ssh 172.17.15.8 iptables -C INPUT -p tcp --dport 445 -j ACCEPT 2> /dev/null || ssh 172.17.15.8 iptables -I INPUT -p tcp --dport 445 -j ACCEPT
+ssh 172.17.15.8 iptables -C INPUT -p tcp --dport 445 -s 172.17.15.0/24 -j ACCEPT 2> /dev/null || ssh 172.17.15.8 iptables -I INPUT -p tcp --dport 445 -s 172.17.15.0/24 -j ACCEPT
 ssh 172.17.15.8 iptables-save > /etc/sysconfig/iptables
 ssh 172.17.15.8 service iptables save
 
@@ -392,3 +392,6 @@ ssh 172.17.15.2 "sed -i 's/.*MX.*/town.ontario.ops IN A 10 coburg.towns.ontario.
 
 #open port smtp
 #some people has ens3 network card
+#if ppl click No => turn off machine => backup =>> need to turn on machines again
+# check if there is machine which has been cloned yet or not
+# fix selinux which prevents postfix
