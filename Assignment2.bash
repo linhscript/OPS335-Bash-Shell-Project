@@ -327,7 +327,7 @@ echo -e "\e[1;35mCreate regular user\e[m"
 ssh 172.17.15.8 useradd -m $username 2> /dev/null
 ssh 172.17.15.8 '( echo '$username:$password' | chpasswd )'
 
-# Create SAMBA users,folders,groups,add user to group
+# Create SAMBA users,folders,groups,add user to group, give permissons
 miltonusers="$username-1 $username-2 $username-admin"
 for users in $miltonusers
 do
@@ -344,13 +344,41 @@ EOF
 	chmod -R 770 /documents/private/$users 2> /dev/null
 done
 ssh 172.17.15.8 mkdir -p /documents/shared/readonly 2> /dev/null
-ssh 172.17.15.8 mkdir -p /documents/shared/readwrite 2> /dev/null
+ssh 172.17.15.8 chmod -R 775 /documents/shared/readonly 2> /dev/null
+ssh 172.17.15.8 chown -R root:group@$username-admin /documents/shared/readonly 2> /dev/null
 
+ssh 172.17.15.8 mkdir -p /documents/shared/readwrite 2> /dev/null
+ssh 172.17.15.8 chmod -R 777 /documents/shared/readwrite 2> /dev/null
 echo -e "\e[32mUsers and Folders Created \e[m"
 
-# Permission 
-chown -R root:
-chmod 
+# SMB.CONF
+
+cat > smb.conf << EOF
+
+[global]
+workgroup = SENEDS
+server string = $fullname - Assignment 2
+encrypt passwords = yes
+smb passwd file = /etc/samba/smbpasswd
+hosts allow = 172.17.15. 127.0.0.1
+
+[documents]
+path = /documents
+read only = no
+valid users = $username-1 $username-2 $username-admin
+
+EOF
+check "scp smb.conf 172.17.15.8:/etc/samba/smb.conf " "Error when trying to copy SMB.CONF"
+rm -rf smb.conf
+
+# Selinux allows SMB
+ssh 172.17.15.8 setsebool -P samba_enable_home_dirs on
+
+# Config iptables
+echo "Adding Firewall Rules"
+ssh 172.17.15.8 iptables -C INPUT -p tcp --dport 445 -j ACCEPT || ssh 172.17.15.8 iptables -I INPUT -p tcp --dport 445 -j ACCEPT
+ssh 172.17.15.8 iptables-save > /etc/sysconfig/iptables
+ssh 172.17.15.8 service iptables save
 
 ## --------MILTON DONE------------ ####
 ## TORONTO MACHINE
@@ -358,6 +386,5 @@ chmod
 ssh 172.17.15.2 "sed 's/.*MX.*/town.ontario.ops IN A 10 coburg.towns.ontario.ops.\ntown.ontario.ops IN A 20 kingston.towns.ontario.ops./' /var/named/mydb-for-towns.ontario.ops "
 
 
-# Set up iptables
 #open port smtp
 #some people has ens3 network card
