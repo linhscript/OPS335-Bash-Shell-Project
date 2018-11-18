@@ -60,7 +60,7 @@ function require {
 		
 		for bk in $(ls /var/lib/libvirt/images/ | grep -v vm* | grep \.qcow2$)
 		do
-			echo "Backing up bk"
+			echo "Backing up in process"
 			pv /var/lib/libvirt/images/$bk | gzip | pv  > /backup/full/$bk.backup.gz
 		done
 	done
@@ -336,10 +336,11 @@ for users in $miltonusers
 do
 	ssh 172.17.15.8 useradd -m $users 2> /dev/null
 	ssh 172.17.15.8 '( echo '$users:$password' | chpasswd )'
-	cat << EOF | ssh 172.17.15.8 smbpasswd -s -a $users
-	$password
-	$password
+cat << EOF | ssh 172.17.15.8 smbpasswd -s -a $users
+$password
+$password
 EOF
+
 	ssh 172.17.15.8 mkdir -p /documents/private/$users 2> /dev/null
 	ssh 172.17.15.8 groupadd group$users 2>/dev/null
 	ssh 172.17.15.8 gpasswd -M $users,$username-admin group$users 2> /dev/null
