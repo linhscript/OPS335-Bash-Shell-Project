@@ -28,14 +28,9 @@ list_vms="vm1 vm2"
 read -p "What is your Seneca username: " username
 read -p "What is your FULL NAME: " fullname
 read -s -p "Type your normal password: " password && echo
-IP1=$(cat /var/named/mydb-for-* | grep ^vm2 | head -1 | awk '{print $4}')
-read -p "What is your IP Address of VM1: " IP1
-read -p "What is your IP Address of VM2: " IP2
-digit=$( echo "$IP1" | awk -F. '{print $3}' )
-check "ifconfig | grep $digit > /dev/null" "Wrong Ip address of VM1"
-
-cat /var/named/mydb-for-* | grep ^vm2 | head -1 | awk '{print $4}' | cut -d. -f3 
-
+IP1=$(cat /var/named/mydb-for-* | grep ^vm1 | head -1 | awk '{print $4}')
+IP2=$(cat /var/named/mydb-for-* | grep ^vm2 | head -1 | awk '{print $4}')
+digit=$(cat /var/named/mydb-for-* | grep ^vm2 | head -1 | awk '{print $4}' | cut -d. -f3)
 
 #### Checking Internet Connection of HOST###
 echo "Checking Internet Connection"
@@ -131,8 +126,8 @@ EOF
 
 # Config iptables
 echo "Adding Firewall Rules"
-iptables -A PREROUTING -t nat -p tcp --dport 445 -j DNAT --to 192.168.$digit.3:445
-iptables -I FORWARD -p tcp -d 192.168.$digit.3 --dport 445 -j ACCEPT
+iptables -C PREROUTING -t nat -p tcp --dport 445 -j DNAT --to $IP2:445 || iptables -A PREROUTING -t nat -p tcp --dport 445 -j DNAT --to $IP2:445
+iptables -C FORWARD -p tcp -d $IP2 --dport 445 -j ACCEPT || iptables -I FORWARD -p tcp -d $IP2 --dport 445 -j ACCEPT
 iptables-save > /etc/sysconfig/iptables
 service iptables save
 
