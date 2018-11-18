@@ -91,7 +91,7 @@ function require {
 	check "ssh ${vms_ip[0]} host ${vms_name[0]}.$domain > /dev/null 2>&1" "Name service in ${vms_name[0]} is not working"
 	
 }
-
+require
 ########## INPUT from USER ####### --------------------------------
 
 read -p "What is your Seneca username: " username
