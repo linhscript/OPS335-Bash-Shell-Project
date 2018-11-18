@@ -200,8 +200,8 @@ echo -e "\e[32mUser Created \e[m"
 echo -e "\e[1;35mInstall packages\e[m"
 check "ssh 172.17.15.6 yum install -y mailx postfix dovecot" "Can not install mailx and postfix and dovecot"
 echo -e "\e[32mDone Installation \e[m"
-check "ssh 172.17.15.6 "systemctl start postfix && systemctl start dovecot"" "Can not start services on COBURG"
-check "ssh 172.17.15.6 "systemctl enable postfix && systemctl enable dovecot"" "Can not enable services on COBURG"
+check "ssh 172.17.15.6 systemctl start postfix" "Can not start services on COBURG"
+check "ssh 172.17.15.6 systemctl enable postfix" "Can not enable services on COBURG"
 # /Etc/postfix/main.cf
 cat > main.cf << EOF
 queue_directory = /var/spool/postfix
