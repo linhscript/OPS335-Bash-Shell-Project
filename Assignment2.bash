@@ -170,8 +170,10 @@ rm -rf main.cf > /dev/null
 sleep 2
 
 # Iptables
-ssh 172.17.15.5 iptables -C INPUT -p tcp --dport 143 -s 172.17.15.0/24 -j ACCEPT > /dev/null || ssh 172.17.15.5 iptables -I INPUT -p tcp --dport 143 -s 172.17.15.0/24 -j ACCEPT
-
+ssh 172.17.15.5 iptables -C INPUT -p tcp --dport 25 -j ACCEPT > /dev/null || ssh 172.17.15.5 iptables -I INPUT -p tcp --dport 25 -j ACCEPT
+ssh 172.17.15.5 iptables -C INPUT -p udp --dport 25 -j ACCEPT > /dev/null || ssh 172.17.15.5 iptables -I INPUT -p udp --dport 25 -j ACCEPT
+iptables-save > /etc/sysconfig/iptables
+service iptables save
 ## --------KINGSTON DONE------------ ####
 
 ## COBURG MACHINE
@@ -294,7 +296,10 @@ ssh 172.17.15.6 "sed 's/^#root.*/root = "$username"/' /etc/aliases "
 
 # Iptables
 ssh 172.17.15.6 iptables -C INPUT -p tcp --dport 143 -s 172.17.15.0/24 -j ACCEPT > /dev/null || ssh 172.17.15.6 iptables -I INPUT -p tcp --dport 143 -s 172.17.15.0/24 -j ACCEPT
-
+ssh 172.17.15.6 iptables -C INPUT -p tcp --dport 25 -j ACCEPT > /dev/null || ssh 172.17.15.6 iptables -I INPUT -p tcp --dport 25 -j ACCEPT
+ssh 172.17.15.6 iptables -C INPUT -p udp --dport 25 -j ACCEPT > /dev/null || ssh 172.17.15.6 iptables -I INPUT -p udp --dport 25 -j ACCEPT
+iptables-save > /etc/sysconfig/iptables
+service iptables save
 ## --------COBURG DONE------------ ####
 
 
@@ -310,19 +315,42 @@ echo "DOMAIN=towns.ontario.ops" >> ipconf.txt
 check "scp ipconf.txt 172.17.15.8:/etc/sysconfig/network-scripts/ifcfg-eth0 > /dev/null" "Can not copy ipconf to MILTON"
 rm -rf ipconf.txt > /dev/null
 
-# Create user
-echo -e "\e[1;35mCreate regular user\e[m"
-ssh 172.17.15.8 useradd -m $username 2> /dev/null
-ssh 172.17.15.8 '( echo '$username:$password' | chpasswd )'
-echo -e "\e[32mUser Created \e[m"
-
 # Install packages
 echo -e "\e[1;35mInstall packages\e[m"
 check "ssh 172.17.15.8 yum install -y samba*" "Can not install samba"
 echo -e "\e[32mDone Installation \e[m"
-check "ssh 172.17.15.8 systemctl start postfix && systemctl start dovecot" "Can not start services on COBURG"
-check "ssh 172.17.15.8 systemctl enable postfix && systemctl enable dovecot" "Can not enable services on COBURG"
+check "ssh 172.17.15.8 systemctl start smb" "Can not start services on MILTON"
+check "ssh 172.17.15.8 systemctl enable smb" "Can not enable services on MILTON"
 
+# Create regular user
+echo -e "\e[1;35mCreate regular user\e[m"
+ssh 172.17.15.8 useradd -m $username 2> /dev/null
+ssh 172.17.15.8 '( echo '$username:$password' | chpasswd )'
+
+# Create SAMBA users,folders,groups,add user to group
+miltonusers="$username-1 $username-2 $username-admin"
+for users in $miltonusers
+do
+	ssh 172.17.15.8 useradd -m $users 2> /dev/null
+	ssh 172.17.15.8 '( echo '$users:$password' | chpasswd )'
+	cat << EOF | ssh 172.17.15.8 smbpasswd -s -a $users
+	$password
+	$password
+EOF
+	ssh 172.17.15.8 mkdir -p /documents/private/$users 2> /dev/null
+	groupadd group$users 2>/dev/null
+	gpasswd -M $users,$username-admin group$users 2> /dev/null
+	chown -R root:group$users /documents/private/$users 2> /dev/null
+	chmod -R 770 /documents/private/$users 2> /dev/null
+done
+ssh 172.17.15.8 mkdir -p /documents/shared/readonly 2> /dev/null
+ssh 172.17.15.8 mkdir -p /documents/shared/readwrite 2> /dev/null
+
+echo -e "\e[32mUsers and Folders Created \e[m"
+
+# Permission 
+chown -R root:
+chmod 
 
 ## --------MILTON DONE------------ ####
 ## TORONTO MACHINE
