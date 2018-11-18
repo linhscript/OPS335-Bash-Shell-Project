@@ -28,9 +28,14 @@ list_vms="vm1 vm2"
 read -p "What is your Seneca username: " username
 read -p "What is your FULL NAME: " fullname
 read -s -p "Type your normal password: " password && echo
+IP1=$(cat /var/named/mydb-for-* | grep ^vm2 | head -1 | awk '{print $4}')
 read -p "What is your IP Address of VM1: " IP1
 read -p "What is your IP Address of VM2: " IP2
 digit=$( echo "$IP1" | awk -F. '{print $3}' )
+check "ifconfig | grep $digit > /dev/null" "Wrong Ip address of VM1"
+
+cat /var/named/mydb-for-* | grep ^vm2 | head -1 | awk '{print $4}' | cut -d. -f3 
+
 
 #### Checking Internet Connection of HOST###
 echo "Checking Internet Connection"
@@ -119,7 +124,10 @@ ssh $IP2 setsebool -P samba_enable_home_dirs on
 ## Add user and create smb password to VM2
 ssh $IP2 useradd -m $username 2> /dev/null
 ssh $IP2 '( echo '$username:$password' | chpasswd )'
-ssh $IP2 '( echo -ne '$password\n$password\n' | smbpasswd -a -s '$username' )'
+cat << EOF | ssh $IP2 smbpasswd -s -a $username
+$password
+$password
+EOF
 
 # Config iptables
 echo "Adding Firewall Rules"
@@ -138,4 +146,5 @@ echo -e "\e[32m########## COMPLETED ########\e[0m"
 echo "Using these information to login SAMBA"
 echo "Username: " $username
 echo "Password: " $password
+
 
