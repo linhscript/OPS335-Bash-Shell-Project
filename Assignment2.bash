@@ -235,6 +235,58 @@ check "scp main.cf 172.17.15.6:/etc/postfix/main.cf" "Can not copy main.cf to co
 rm -rf main.cf > /dev/null
 sleep 2
 
+# 10-mail.conf
+cat > 10-mail.conf << EOF
+mail_location = maildir:~/mailboxes:LAYOUT=fs
+namespace inbox {
+  inbox = yes
+}
+first_valid_uid = 1000
+mbox_write_locks = fcntl
+
+EOF
+check "scp 10-mail.conf 172.17.15.6:/etc/dovecot/conf.d/10-mail.conf" "Can not copy 10-mail.conf to coburg "
+rm -rf 10-mail.conf > /dev/null
+sleep 2
+
+# dovecot.conf
+cat > dovecot.conf << EOF
+protocols = imap
+dict {
+  #quota = mysql:/etc/dovecot/dovecot-dict-sql.conf.ext
+  #expire = sqlite:/etc/dovecot/dovecot-dict-sql.conf.ext
+}
+!include conf.d/*.conf
+!include_try local.conf
+postmaster_address = towns.ontario.ops
+
+EOF
+check "scp dovecot.conf 172.17.15.6:/etc/dovecot/dovecot.conf" "Can not copy dovecot.conf to coburg "
+rm -rf dovecot.conf > /dev/null
+sleep 2
+
+# 10-auth.conf
+cat > 10-auth.conf << EOF
+ssl = yes
+ssl_cert = </etc/pki/dovecot/certs/dovecot.pem
+ssl_key = </etc/pki/dovecot/private/dovecot.pem
+
+EOF
+check "scp 10-auth.conf  172.17.15.6:/etc/dovecot/conf.d/10-auth.conf" "Can not copy 10-auth.conf  to coburg "
+rm -rf 10-auth.conf  > /dev/null
+sleep 2
+
+# 10-ssl.conf
+cat > 10-ssl.conf << EOF
+ssl = yes
+ssl_cert = </etc/pki/dovecot/certs/dovecot.pem
+ssl_key = </etc/pki/dovecot/private/dovecot.pem
+
+EOF
+check "scp 10-ssl.conf 172.17.15.6:/etc/dovecot/conf.d/10-ssl.conf" "Can not copy 10-ssl.conf to coburg "
+rm -rf 10-ssl.conf > /dev/null
+sleep 2
+
 # Aliases
 
 ssh 172.17.15.6 "sed 's/^#root.*/root = "$username"/' /etc/aliases "

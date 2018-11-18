@@ -137,9 +137,8 @@ ssh $IP2 iptables-save > /etc/sysconfig/iptables
 ssh $IP2 service iptables save
 
 echo 
-echo -e "\e[32m########## COMPLETED ########\e[0m"
 echo "Using these information to login SAMBA. WRITE IT DOWN"
 echo "Username: " $username
 echo "Password: " $password
-echo "#####################################################"
+echo -e "\e[32m########## LAB COMPLETED ########\e[0m"
 
