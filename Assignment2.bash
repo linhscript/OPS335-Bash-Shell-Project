@@ -110,6 +110,17 @@ echo -e "\e[32mRestarted Done \e[m"
 
 ## KINGSTON MACHINE ###
 
+# Network and hostname 
+
+ssh 172.17.15.5 echo kingston.towns.ontario.ops > /etc/hostname
+check "ssh 172.17.15.5 grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-eth0 > ipconf.txt" "File or directory not exist"
+echo "DNS1="172.17.15.2"" >> ipconf.txt
+echo "DNS2="172.17.15.3"" >> ipconf.txt
+echo "PEERDNS=no" >> ipconf.txt
+echo "DOMAIN=towns.ontario.ops" >> ipconf.txt
+check "scp ipconf.txt 172.17.15.5:/etc/sysconfig/network-scripts/ifcfg-eth0 > /dev/null" "Go find the errors yourself :D"
+rm -rf ipconf.txt > /dev/null
+
 # Create user
 echo -e "\e[1;35mCreate regular user\e[m"
 ssh 172.17.15.5 useradd -m $username 2> /dev/null
@@ -140,7 +151,7 @@ alias_database = hash:/etc/aliases
 debug_peer_level = 2
 debugger_command =
 	 PATH=/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin
-	 ddd \$daemon_directory/$process_name \$process_id & sleep 5
+	 ddd \$daemon_directory/\$process_name \$process_id & sleep 5
 sendmail_path = /usr/sbin/sendmail.postfix
 newaliases_path = /usr/bin/newaliases.postfix
 mailq_path = /usr/bin/mailq.postfix
@@ -151,5 +162,63 @@ sample_directory = /usr/share/doc/postfix-2.10.1/samples
 readme_directory = /usr/share/doc/postfix-2.10.1/README_FILES
  
 EOF
+
+check "scp main.cf 172.17.15.5:/etc/postfix/main.cf" "Can not copy main.cf to kingston "
+rm -rf main.cf > /dev/null
+sleep 2
+
+# Iptables
+ssh 172.17.15.5 iptables -C INPUT -p tcp --dport 143 -s 172.17.15.0/24 -j ACCEPT > /dev/null || ssh 172.17.15.5 iptables -I INPUT -p tcp --dport 143 -s 172.17.15.0/24 -j ACCEPT
+
+
+
+
+
+## COBURG MACHINE
+# Create user
+echo -e "\e[1;35mCreate regular user\e[m"
+ssh 172.17.15.6 useradd -m $username 2> /dev/null
+ssh 172.17.15.6 '( echo '$username:$password' | chpasswd )'
+echo -e "\e[32mUser Created \e[m"
+
+# Install packages
+echo -e "\e[1;35mInstall packages\e[m"
+check "ssh 172.17.15.6 yum install -y mailx postfix dovecot" "Can not install mailx and postfix and dovecot"
+echo -e "\e[32mDone Installation \e[m"
+
+# /Etc/postfix/main.cf
+cat > main.cf << EOF
+queue_directory = /var/spool/postfix
+command_directory = /usr/sbin
+daemon_directory = /usr/libexec/postfix
+data_directory = /var/lib/postfix
+mail_owner = postfix
+mydomain = towns.ontario.ops
+myorigin = \$mydomain
+inet_interfaces = all
+inet_protocols = all
+mydestination = \$mydomain,\$myhostname, localhost.\$mydomain, localhost
+unknown_local_recipient_reject_code = 550
+mynetworks = 172.17.15.0/24, 127.0.0.0/8
+alias_maps = hash:/etc/aliases
+alias_database = hash:/etc/aliases
+mailbox_command = /usr/libexec/dovecot/dovecot-lda -f "\$SENDER" -a "\$RECIPIENT"
+debug_peer_level = 2
+debugger_command =
+	 PATH=/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin
+	 ddd \$daemon_directory/\$process_name \$process_id & sleep 5
+sendmail_path = /usr/sbin/sendmail.postfix
+newaliases_path = /usr/bin/newaliases.postfix
+mailq_path = /usr/bin/mailq.postfix
+setgid_group = postdrop
+html_directory = no
+manpage_directory = /usr/share/man
+sample_directory = /usr/share/doc/postfix-2.10.1/samples
+readme_directory = /usr/share/doc/postfix-2.10.1/README_FILES
+
+EOF
+
+
 # Set up iptables
 #open port smtp
+#some people has ens3 network card
