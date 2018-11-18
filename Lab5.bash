@@ -126,8 +126,8 @@ EOF
 
 # Config iptables
 echo "Adding Firewall Rules"
-iptables -C PREROUTING -t nat -p tcp --dport 445 -j DNAT --to $IP2:445 || iptables -A PREROUTING -t nat -p tcp --dport 445 -j DNAT --to $IP2:445
-iptables -C FORWARD -p tcp -d $IP2 --dport 445 -j ACCEPT || iptables -I FORWARD -p tcp -d $IP2 --dport 445 -j ACCEPT
+iptables -C PREROUTING -t nat -p tcp --dport 445 -j DNAT --to $IP2:445 > /dev/null || iptables -A PREROUTING -t nat -p tcp --dport 445 -j DNAT --to $IP2:445
+iptables -C FORWARD -p tcp -d $IP2 --dport 445 -j ACCEPT > /dev/null|| iptables -I FORWARD -p tcp -d $IP2 --dport 445 -j ACCEPT
 iptables-save > /etc/sysconfig/iptables
 service iptables save
 

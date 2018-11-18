@@ -93,13 +93,13 @@ function require {
 }
 
 ########## INPUT from USER ####### --------------------------------
-read -p "What is your IP Adress of VM1: " IP
-fdigit=$( echo "$IP" | awk -F. '{print $1"."$2"."$3}' )
-check "ifconfig | grep $fdigit > /dev/null" "Wrong Ip address of VM1"
-intvm=$(ifconfig | grep -B 1 $fdigit.1 | head -1 | awk -F: '{print $1}')
-echo
-intclone=$(ifconfig | grep -B 1 172.17.15.1 | head -1 | awk -F: '{print $1}')
-read -p "What is your Matrix account ID: " userid
+
+read -p "What is your Seneca username: " username
+read -p "What is your FULL NAME: " fullname
+read -s -p "Type your normal password: " password && echo
+IP1=$(cat /var/named/mydb-for-* | grep ^vm1 | head -1 | awk '{print $4}')
+IP2=$(cat /var/named/mydb-for-* | grep ^vm2 | head -1 | awk '{print $4}')
+digit=$(cat /var/named/mydb-for-* | grep ^vm2 | head -1 | awk '{print $4}' | cut -d. -f3)
 
 
 echo "-------Restarting Named-----------"
