@@ -34,7 +34,7 @@ function require {
 	
 	for (( i=0; i<${#vms_name[@]};i++ ))
 	do
-		declare -A dict+=( [${vms_name[$i]}]=${vms_ip[$i]} )
+		declare -A dict+=(["${vms_name[$i]}"]="${vms_ip[$i]}")
 	done
 	
 	### 1.Backing up before runnning the script ------------------
