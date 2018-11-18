@@ -22,6 +22,14 @@ function require {
 	vms_name=(toronto ottawa kingston coburg milton)   ###-- Put the name in order --  Master Slave Other Machines
 	vms_ip=(172.17.15.2 172.17.15.3 172.17.15.5 172.17.15.6 172.17.15.8)	
 	
+	### INPUT from USER ###
+
+	read -p "What is your Seneca username: " username
+	read -p "What is your FULL NAME: " fullname
+	read -s -p "Type your normal password: " password && echo
+	IP=$(cat /var/named/mydb-for-* | grep ^vm1 | head -1 | awk '{print $4}')
+	digit=$(cat /var/named/mydb-for-* | grep ^vm2 | head -1 | awk '{print $4}' | cut -d. -f3)
+	
 	#### Create Hash Table -------------------------------
 	
 	for (( i=0; i<${#vms_name[@]};i++ ))
@@ -92,16 +100,8 @@ function require {
 	
 }
 require
-########## INPUT from USER ####### --------------------------------
 
-read -p "What is your Seneca username: " username
-read -p "What is your FULL NAME: " fullname
-read -s -p "Type your normal password: " password && echo
-IP=$(cat /var/named/mydb-for-* | grep ^vm1 | head -1 | awk '{print $4}')
-digit=$(cat /var/named/mydb-for-* | grep ^vm2 | head -1 | awk '{print $4}' | cut -d. -f3)
-
-
-echo "\e[1;35mRestarting Named\e[m"
+echo -e "\e[1;35mRestarting Named\e[m"
 systemctl restart named
 echo -e "\e[32mRestarted Done \e[m"
 
