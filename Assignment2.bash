@@ -272,9 +272,9 @@ sleep 2
 
 # 10-auth.conf
 cat > 10-auth.conf << EOF
-ssl = yes
-ssl_cert = </etc/pki/dovecot/certs/dovecot.pem
-ssl_key = </etc/pki/dovecot/private/dovecot.pem
+disable_plaintext_auth = no
+auth_mechanisms = plain
+!include auth-system.conf.ext
 
 EOF
 check "scp 10-auth.conf  172.17.15.6:/etc/dovecot/conf.d/10-auth.conf" "Can not copy 10-auth.conf  to coburg "
