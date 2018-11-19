@@ -403,10 +403,9 @@ ssh 172.17.15.8 service iptables save
 ssh 172.17.15.2 "sed -i 's/.*MX.*/town.ontario.ops. IN MX 10 coburg.towns.ontario.ops.\ntown.ontario.ops. IN MX 20 kingston.towns.ontario.ops./' /var/named/mydb-for-towns.ontario.ops "
 
 
-#open port smtp
+
 #some people has ens3 network card
-#if ppl click No => turn off machine => backup =>> need to turn on machines again
-# check if there is machine which has been cloned yet or not
+
 # fix selinux which prevents postfix
 #postfix_local_write_mail_spool --> on (coburg and kinsgton)
 
