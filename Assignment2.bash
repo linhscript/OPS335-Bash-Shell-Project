@@ -387,7 +387,7 @@ ssh 172.17.15.8 service iptables save
 ## --------MILTON DONE------------ ####
 ## TORONTO MACHINE
 # MX Record
-ssh 172.17.15.2 "sed -i 's/.*MX.*/town.ontario.ops IN A 10 coburg.towns.ontario.ops.\ntown.ontario.ops IN A 20 kingston.towns.ontario.ops./' /var/named/mydb-for-towns.ontario.ops "
+ssh 172.17.15.2 "sed -i 's/.*MX.*/town.ontario.ops. IN MX 10 coburg.towns.ontario.ops.\ntown.ontario.ops. IN MX 20 kingston.towns.ontario.ops./' /var/named/mydb-for-towns.ontario.ops "
 
 
 #open port smtp
