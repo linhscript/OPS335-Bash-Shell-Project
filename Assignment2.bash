@@ -322,14 +322,14 @@ service iptables save
 
 ## MILTON MACHINE
 # Network and hostname 
-
+intmilton=$( ssh 172.17.15.8 '( ifconfig | grep -B 1 172.17.15 | head -1 | cut -d: -f1 )' )
 ssh 172.17.15.8 "echo milton.towns.ontario.ops > /etc/hostname"
-check "ssh 172.17.15.8 grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-eth0 > ipconf.txt" "File or directory not exist"
+check "ssh 172.17.15.8 grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-$intmilton > ipconf.txt" "File or directory not exist"
 echo "DNS1="172.17.15.2"" >> ipconf.txt
 echo "DNS2="172.17.15.3"" >> ipconf.txt
 echo "PEERDNS=no" >> ipconf.txt
 echo "DOMAIN=towns.ontario.ops" >> ipconf.txt
-check "scp ipconf.txt 172.17.15.8:/etc/sysconfig/network-scripts/ifcfg-eth0 > /dev/null" "Can not copy ipconf to MILTON"
+check "scp ipconf.txt 172.17.15.8:/etc/sysconfig/network-scripts/ifcfg-$intmilton > /dev/null" "Can not copy ipconf to MILTON"
 rm -rf ipconf.txt > /dev/null
 
 # Install packages
