@@ -377,7 +377,8 @@ rm -rf smb.conf
 
 # Selinux allows SMB
 ssh 172.17.15.8 setsebool -P samba_enable_home_dirs on
-
+ssh 172.17.15.8 setsebool -P samba_export_all_ro on
+ssh 172.17.15.8 setsebool -P samba_export_all_rw on
 # Config iptables
 echo "Adding Firewall Rules"
 ssh 172.17.15.8 iptables -C INPUT -p tcp --dport 445 -s 172.17.15.0/24 -j ACCEPT 2> /dev/null || ssh 172.17.15.8 iptables -I INPUT -p tcp --dport 445 -s 172.17.15.0/24 -j ACCEPT
