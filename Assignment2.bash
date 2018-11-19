@@ -124,14 +124,14 @@ require
 ## KINGSTON MACHINE ###
 
 # Network and hostname 
-
+intkingston=$( ssh 172.17.15.5 '( ifconfig | grep -B 1 172.17.15 | head -1 | cut -d: -f1 )' )
 ssh 172.17.15.5 "echo kingston.towns.ontario.ops > /etc/hostname"
-check "ssh 172.17.15.5 grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-eth0 > ipconf.txt" "File or directory not exist"
+check "ssh 172.17.15.5 grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-$intkingston > ipconf.txt" "File or directory not exist"
 echo "DNS1="172.17.15.2"" >> ipconf.txt
 echo "DNS2="172.17.15.3"" >> ipconf.txt
 echo "PEERDNS=no" >> ipconf.txt
 echo "DOMAIN=towns.ontario.ops" >> ipconf.txt
-check "scp ipconf.txt 172.17.15.5:/etc/sysconfig/network-scripts/ifcfg-eth0 > /dev/null" "Can not copy ipconf to KINGSTON"
+check "scp ipconf.txt 172.17.15.5:/etc/sysconfig/network-scripts/ifcfg-$intkingston > /dev/null" "Can not copy ipconf to KINGSTON"
 rm -rf ipconf.txt > /dev/null
 
 # Create user
@@ -144,6 +144,7 @@ echo -e "\e[32mUser Created \e[m"
 echo -e "\e[1;35mInstall packages\e[m"
 check "ssh 172.17.15.5 yum install -y mailx postfix" "Can not install mailx and postfix"
 echo -e "\e[32mDone Installation \e[m"
+ssh 172.17.15.5 setenforce permissive
 check "ssh 172.17.15.5 systemctl start postfix" "Can not start services on KINGSTON"
 check "ssh 172.17.15.5 systemctl enable postfix" "Can not enable services on KINGSTON"
 
@@ -192,14 +193,14 @@ service iptables save
 ######################### COBURG MACHINE
 
 # Network and hostname 
-
+intcoburg=$( ssh 172.17.15.6 '( ifconfig | grep -B 1 172.17.15 | head -1 | cut -d: -f1 )' )
 ssh 172.17.15.6 "echo coburg.towns.ontario.ops > /etc/hostname"
-check "ssh 172.17.15.6 grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-eth0 > ipconf.txt" "File or directory not exist"
+check "ssh 172.17.15.6 grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-$intcoburg > ipconf.txt" "File or directory not exist"
 echo "DNS1="172.17.15.2"" >> ipconf.txt
 echo "DNS2="172.17.15.3"" >> ipconf.txt
 echo "PEERDNS=no" >> ipconf.txt
 echo "DOMAIN=towns.ontario.ops" >> ipconf.txt
-check "scp ipconf.txt 172.17.15.6:/etc/sysconfig/network-scripts/ifcfg-eth0 > /dev/null" "Can not copy ipconf to COBURG"
+check "scp ipconf.txt 172.17.15.6:/etc/sysconfig/network-scripts/ifcfg-$intcoburg > /dev/null" "Can not copy ipconf to COBURG"
 rm -rf ipconf.txt > /dev/null
 
 # Create user
@@ -212,6 +213,7 @@ echo -e "\e[32mUser Created \e[m"
 echo -e "\e[1;35mInstall packages\e[m"
 check "ssh 172.17.15.6 yum install -y mailx postfix dovecot" "Can not install mailx and postfix and dovecot"
 echo -e "\e[32mDone Installation \e[m"
+ssh 172.17.15.6 setenforce permissive
 check "ssh 172.17.15.6 systemctl start postfix" "Can not start services on COBURG"
 check "ssh 172.17.15.6 systemctl start dovecot" "Can not start services on COBURG"
 check "ssh 172.17.15.6 systemctl enable postfix" "Can not enable services on COBURG"
