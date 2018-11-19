@@ -368,7 +368,7 @@ done
 
 for b in miltonusers
 do
-	ssh 172.17.15.8 gpasswd -M $b,$username-admin group$users 2> /dev/null
+	ssh 172.17.15.8 gpasswd -M $b,$username-admin group$b 2> /dev/null
 done
 
 ssh 172.17.15.8 mkdir -p /documents/shared/readonly 2> /dev/null
