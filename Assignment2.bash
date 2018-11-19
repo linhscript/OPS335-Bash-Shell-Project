@@ -38,12 +38,21 @@ function require {
 		dict+=(["${vms_name[$i]}"]="${vms_ip[$i]}")
 	done
 	
-	### 1.Backing up before runnning the script ------------------
+	
+	### 1.Run script by Root ---------------------------------------------
+
+	if [ `id -u` -ne 0 ]
+	then
+		echo "Must run this script by root" >&2
+		exit 2
+	fi
+
+	### 2.Backing up before runnning the script ------------------
 
 	echo -e "\e[1;31m--------WARNING----------"
 	echo -e "\e[1mBackup your virtual machine to run this script \e[0m"
 	echo
-	read -p "Did you make a backup ?. If NO, It will do it for you. [Y/N]: " choice
+	read -p "Did you make a backup? [Y/N]: " choice
 	while [[ "$choice" != "Y" && "$choice" != "Yes" && "$choice" != "y" && "$choice" != "yes" ]]
 	do
 		echo -e "\e[33mBacking up in process \e[0m" >&2
@@ -52,11 +61,11 @@ function require {
 			virsh shutdown $shut
 			while virsh list | grep -iqs $shut
 			do
-				echo $shut is being shutdown. Wait
+				echo $shut is being shutdown to backup. Wait
                 sleep 3
 			done
 		done
-		yum install pv -y > /dev/null
+		yum install pv -y  > /dev/null 2>&1
 		
 		for bk in $(ls /var/lib/libvirt/images/ | grep -v vm* | grep \.qcow2$)
 		do
@@ -65,15 +74,20 @@ function require {
 		done
 	done
 
-	### 2.Run script by Root ---------------------------------------------
-	if [ `id -u` -ne 0 ]
-	then
-		echo "Must run this script by root" >&2
-		exit 2
-	fi
 
-	### 3.Checking VMs need to be online ----------------------------------
 
+	### 3.Checking VMs need to be clone and status ----------------------------------
+	echo "Checking clone machine"
+	for vm in ${vms_name[@]}
+	do 
+		if ! virsh list --all | grep -iqs $vm
+		then
+			echo "Cloning $vm"
+			virt-clone --auto-clone -o cloyne --name $vm
+		fi
+	done
+
+	########################################
 	echo "Checking VMs status"
 	for vm in ${vms_name[@]}
 	do 
@@ -85,6 +99,9 @@ function require {
 	done
 	
 	### 4.SSH and Pinging and Update Check ------------------------------------
+	echo -e "\e[1;35mRestarting Named\e[m"
+	systemctl restart named
+	echo -e "\e[32mRestarted Done \e[m"
 
 	check "ping -c 3 google.ca > /dev/null" "Host machine can not ping GOOGLE.CA, check INTERNET connection then run the script again"
 		
@@ -101,11 +118,6 @@ function require {
 	
 }
 require
-
-echo -e "\e[1;35mRestarting Named\e[m"
-systemctl restart named
-echo -e "\e[32mRestarted Done \e[m"
-
 
 ### Start CONFIGURATION ###
 
@@ -396,3 +408,5 @@ ssh 172.17.15.2 "sed -i 's/.*MX.*/town.ontario.ops. IN MX 10 coburg.towns.ontari
 #if ppl click No => turn off machine => backup =>> need to turn on machines again
 # check if there is machine which has been cloned yet or not
 # fix selinux which prevents postfix
+#postfix_local_write_mail_spool --> on (coburg and kinsgton)
+
