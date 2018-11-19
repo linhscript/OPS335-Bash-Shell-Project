@@ -111,7 +111,7 @@ function require {
 	do
 	check "ssh -o ConnectTimeout=5 ${dict[$ssh_vm]} ls > /dev/null" "Can not SSH to $ssh_vm, check and run the script again "
 	check "ssh ${dict[$ssh_vm]} ping -c 3 google.ca > /dev/null" "Can not ping GOOGLE.CA from $ssh_vm, check internet connection then run the script again"
-	check "ssh ${!dict[$ssh_vm]} yum update -y" "Can not YUM UPDATE from $ssh_vm"
+	check "ssh ${dict[$ssh_vm]} yum update -y" "Can not YUM UPDATE from $ssh_vm"
 	done
 	
 	### 5.Checking jobs done from Assignment 1 -------------------------
@@ -188,8 +188,9 @@ sleep 2
 # Iptables
 ssh 172.17.15.5 iptables -C INPUT -p tcp --dport 25 -j ACCEPT 2> /dev/null || ssh 172.17.15.5 iptables -I INPUT -p tcp --dport 25 -j ACCEPT
 ssh 172.17.15.5 iptables -C INPUT -p udp --dport 25 -j ACCEPT 2> /dev/null || ssh 172.17.15.5 iptables -I INPUT -p udp --dport 25 -j ACCEPT
-iptables-save > /etc/sysconfig/iptables
-service iptables save
+ssh 172.17.15.5 iptables-save > /etc/sysconfig/iptables
+ssh 172.17.15.5 service iptables save
+ssh 172.17.15.5 systemctl restart postfix
 ## --------KINGSTON DONE------------ ####
 
 ######################### COBURG MACHINE
@@ -317,8 +318,10 @@ ssh 172.17.15.6 "sed -i 's/^#root.*/root = "$username"/' /etc/aliases "
 ssh 172.17.15.6 iptables -C INPUT -p tcp --dport 143 -s 172.17.15.0/24 -j ACCEPT 2> /dev/null || ssh 172.17.15.6 iptables -I INPUT -p tcp --dport 143 -s 172.17.15.0/24 -j ACCEPT
 ssh 172.17.15.6 iptables -C INPUT -p tcp --dport 25 -j ACCEPT 2> /dev/null || ssh 172.17.15.6 iptables -I INPUT -p tcp --dport 25 -j ACCEPT
 ssh 172.17.15.6 iptables -C INPUT -p udp --dport 25 -j ACCEPT 2> /dev/null || ssh 172.17.15.6 iptables -I INPUT -p udp --dport 25 -j ACCEPT
-iptables-save > /etc/sysconfig/iptables
-service iptables save
+ssh 172.17.15.6 iptables-save > /etc/sysconfig/iptables
+ssh 172.17.15.6 service iptables save
+ssh 172.17.15.6 systemctl restart postfix
+ssh 172.17.15.6 systemctl restart dovecot
 ## --------COBURG DONE------------ ####
 
 
@@ -361,9 +364,13 @@ EOF
 	ssh 172.17.15.8 groupadd group$users 2>/dev/null	
 	ssh 172.17.15.8 chown -R root:group$users /documents/private/$users 2> /dev/null
 	ssh 172.17.15.8 chmod -R 770 /documents/private/$users 2> /dev/null
-	sleep 2
-	ssh 172.17.15.8 gpasswd -M $users,$username-admin group$users 2> /dev/null
 done
+
+for b in miltonusers
+do
+	ssh 172.17.15.8 gpasswd -M $b,$username-admin group$users 2> /dev/null
+done
+
 ssh 172.17.15.8 mkdir -p /documents/shared/readonly 2> /dev/null
 ssh 172.17.15.8 chmod -R 775 /documents/shared/readonly 2> /dev/null
 ssh 172.17.15.8 chown -R root:group@$username-admin /documents/shared/readonly 2> /dev/null
@@ -401,15 +408,13 @@ echo "Adding Firewall Rules"
 ssh 172.17.15.8 iptables -C INPUT -p tcp --dport 445 -s 172.17.15.0/24 -j ACCEPT 2> /dev/null || ssh 172.17.15.8 iptables -I INPUT -p tcp --dport 445 -s 172.17.15.0/24 -j ACCEPT
 ssh 172.17.15.8 iptables-save > /etc/sysconfig/iptables
 ssh 172.17.15.8 service iptables save
+ssh 172.17.15.8 systemctl restart smb
 
 ## --------MILTON DONE------------ ####
 ## TORONTO MACHINE
 # MX Record
 ssh 172.17.15.2 "sed -i 's/.*MX.*/town.ontario.ops. IN MX 10 coburg.towns.ontario.ops.\ntown.ontario.ops. IN MX 20 kingston.towns.ontario.ops./' /var/named/mydb-for-towns.ontario.ops "
 
-
-
-#some people has ens3 network card
 
 # fix selinux which prevents postfix
 #postfix_local_write_mail_spool --> on (coburg and kinsgton)
