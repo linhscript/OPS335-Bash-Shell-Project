@@ -72,7 +72,7 @@ function require {
 			echo "Backing up $bk"
 			pv /var/lib/libvirt/images/$bk | gzip | pv  > /backup/full/$bk.backup.gz
 		done
-	done
+	fi
 
 
 
