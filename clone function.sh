@@ -55,7 +55,7 @@ function clone-machine {
 		#------ get new mac address
 		newmac=$(virsh dumpxml $clonevm | grep "mac address" | cut -d\' -f2)
 		#-----Replace mac and ip, hostname
-		ssh 172.17.15.100 "sed -i 's/#${maccloyne}/${newmac}/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne"
+		ssh 172.17.15.100 "sed -i 's/.*HW.*/${newmac}/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne"
 		ssh 172.17.15.100 "echo $clonevm.towns.ontario.ops > /etc/hostname "
 		ssh 172.17.15.100 "sed -i 's/'172.17.15.100'/${dict[$clonevm]}/' /etc/sysconfig/network-scripts/ifcfg-$intcloyne"
 		echo
