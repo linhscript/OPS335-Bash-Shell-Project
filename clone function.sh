@@ -49,7 +49,7 @@ function clone-machine {
 		virsh start $clonevm
 		while ! eval "ping 172.17.15.100 -c 5 > /dev/null" 
 		do
-			echo "Cloyne machine is starting"
+			echo "Clonning machine is starting"
 			sleep 3
 		done
 		#------ get new mac address
