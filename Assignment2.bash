@@ -490,11 +490,11 @@ echo
 echo
 echo "---------------INFORMATION YOU WILL NEED-----------------"
 cat > /root/Assignment2-information.txt << EOF
-	IMAP Server: coburg.towns.ontario.ops
-	SMTP Server: kingston.towns.ontario.ops
-	Users for Samba: $username-1 $username-2 $username-admin
-	Password to login: $password
++ IMAP Server: coburg.towns.ontario.ops
++ SMTP Server: kingston.towns.ontario.ops
++ Users for Samba: $username-1 $username-2 $username-admin
++ Password to login: $password
 
-	## All the above information will be stored in  /root/Assignment2-information.txt ##
+## All the above information will be stored in  /root/Assignment2-information.txt ##
 EOF
 cat /root/Assignment2-information.txt
