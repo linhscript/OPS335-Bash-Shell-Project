@@ -45,7 +45,6 @@ function clone-machine {
 		then
 			echo -e "\e[33mCloning $clonevm \e[m"
 			virt-clone --auto-clone -o cloyne --name $clonevm
-		fi
 		#-----Turn on cloned vm without turning on cloyne machine
 		virsh start $clonevm
 		while ! eval "ping 172.17.15.100 -c 5 > /dev/null" 
@@ -62,6 +61,7 @@ function clone-machine {
 		echo
 		echo -e "\e[32mCloning Done $clonevm\e[m"
 		ssh 172.17.15.100 init 6
+		fi
 	done
 }	
 
