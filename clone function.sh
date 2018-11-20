@@ -61,12 +61,7 @@ function clone-machine {
 		ssh 172.17.15.100 "sed 's/'172.17.15.100'/'${dict[$clonevm]}'/' /etc/sysconfig/network-scripts/ifcfg-$intcloyne"
 		echo
 		echo -e "\e[32mCloning Done $clonevm\e[m"
-		init 6
+		ssh 172.17.15.100 init 6
 	done
-
-
 }	
 
-#Check if it needs to clone any machine =>Yes=> turn on cloyne => ssh to cloyne => Comment Mac address > Turnoff cloyne => Clone machine => Turn on that machine with out turnning on cloyne
-#=> ssh to new machine with cloyne ip address => Also dumpxml to get infor => uncomment mac and replace with new mac => Change IP, hostname => restart machine 
-		
