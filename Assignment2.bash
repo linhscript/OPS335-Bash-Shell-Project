@@ -100,7 +100,7 @@ function clone-machine {
 			echo "Cloyne machine is starting"
 			sleep 3
 		done
-		check "ssh -o ConnectTimeout=5 172.17.15.100 ls > /dev/null" "Can not SSH to Cloyne, check and run the script again"
+		check "ssh -o ConnectTimeout=8 172.17.15.100 ls > /dev/null" "Can not SSH to Cloyne, check and run the script again"
 		intcloyne=$( ssh 172.17.15.100 '( ifconfig | grep -B 1 172.17.15 | head -1 | cut -d: -f1 )' )  #### grab interface infor (some one has ens3)
 		maccloyne=$(ssh 172.17.15.100 grep "^HW.*" /etc/sysconfig/network-scripts/ifcfg-$intcloyne) #### grab mac address
 		ssh 172.17.15.100 "sed -i 's/${maccloyne}/#${maccloyne}/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne " #ssh to cloyne and comment mac address
@@ -141,7 +141,7 @@ function clone-machine {
 			fi
 		done
 			#------------------# reset cloyne machine
-			virsh start cloyne
+			virsh start cloyne > /dev/null 2>&1
 			while ! eval "ping 172.17.15.100 -c 5 > /dev/null" 
 			do
 				echo "Cloyne machine is starting"
@@ -159,8 +159,12 @@ clone-machine
 	do 
 		if ! virsh list | grep -iqs $vm
 		then
-			echo -e "\e[1;31mMust turn on $vm  \e[0m" >&2
-			exit 3
+			virsh start $vm > /dev/null 2>&1
+			while ! eval "ping $vm -c 5 > /dev/null" 
+			do
+				echo -e "\e[1;31m $vm is turning on \e[0m" >&2
+				sleep 3
+			done
 		fi
 	done
 	
