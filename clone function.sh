@@ -8,26 +8,26 @@ function clone-machine {
 			echo "$vm need to be created"
 			echo
 			echo
-			$count++
+			count=1
 		fi
 	done
 	#----------------------------------------# Setup cloyne to be cloneable
 	if [ $count -gt 0 ]
 	then
-		echo -e "\e[35mtart cloning machines\e[m"
+		echo -e "\e[35mStart cloning machines\e[m"
 		echo
 		echo "Cloning in progress..."
 		virsh start cloyne 2> /dev/null
-		while ! eval "ping 172.17.15.100 -c 5" 
+		while ! eval "ping 172.17.15.100 -c 5 > /dev/null" 
 		do
 			echo "Cloyne machine is starting"
 			sleep 3
 		done
-		check "ssh -o ConnectTimeout=5 172.17.15.100" "Can not SSH to Cloyne, check and run the script again"
+		check "ssh -o ConnectTimeout=5 172.17.15.100 ls > /dev/null" "Can not SSH to Cloyne, check and run the script again"
 		intcloyne=$( ssh 172.17.15.100 '( ifconfig | grep -B 1 172.17.15 | head -1 | cut -d: -f1 )' )  #### grab interface infor (some one has ens3)
 		maccloyne=$(ssh 172.17.15.100 grep "^HW.*" /etc/sysconfig/network-scripts/ifcfg-$intcloyne) #### grab mac address
-		ssh 172.17.15.100 "sed 's/'$mac'/#'$mac'/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne " #ssh to cloyne and comment mac address
-		check "ssh 172.17.15.5 grep -v -e '.*DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-$intcloyne > ipconf.txt" "File or directory not exist"
+		ssh 172.17.15.100 "sed 's/'$maccloyne'/#'$maccloyne'/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne " #ssh to cloyne and comment mac address
+		check "ssh 172.17.15.100 grep -v -e '.*DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-$intcloyne > ipconf.txt" "File or directory not exist"
 		echo "DNS1="172.17.15.2"" >> ipconf.txt
 		echo "DNS2="172.17.15.3"" >> ipconf.txt
 		echo "PEERDNS=no" >> ipconf.txt
@@ -35,7 +35,7 @@ function clone-machine {
 		check "scp ipconf.txt 172.17.15.100:/etc/sysconfig/network-scripts/ifcfg-$intcloyne > /dev/null" "Can not copy ipconf to Cloyne"
 		rm -rf ipconf.txt > /dev/null
 		sleep 2
-		echo -e "\e[32Cloyne machine info has been collected\e[m"
+		echo -e "\e[32mCloyne machine info has been collected\e[m"
 		virsh destroy cloyne			
 	fi
 	#---------------------------# Start cloning
@@ -48,7 +48,7 @@ function clone-machine {
 		fi
 		#-----Turn on cloned vm without turning on cloyne machine
 		virsh start $clonevm
-		while ! eval "ping 172.17.15.100 -c 5" 
+		while ! eval "ping 172.17.15.100 -c 5 > /dev/null" 
 		do
 			echo "Cloyne machine is starting"
 			sleep 3
