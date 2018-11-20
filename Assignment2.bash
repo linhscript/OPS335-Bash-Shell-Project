@@ -114,41 +114,42 @@ function clone-machine {
 		sleep 2
 		echo -e "\e[32mCloyne machine info has been collected\e[m"
 		virsh destroy cloyne			
-	fi
-	#---------------------------# Start cloning
-	for clonevm in ${!dict[@]} # Key (name vm)
-	do 
-		if ! virsh list --all | grep -iqs $clonevm
-		then
-			echo -e "\e[33mCloning $clonevm \e[m"
-			virt-clone --auto-clone -o cloyne --name $clonevm
-		#-----Turn on cloned vm without turning on cloyne machine
-		virsh start $clonevm
-		while ! eval "ping 172.17.15.100 -c 5 > /dev/null" 
-		do
-			echo "Clonning machine is starting"
-			sleep 3
+	
+		#---------------------------# Start cloning
+		for clonevm in ${!dict[@]} # Key (name vm)
+		do 
+			if ! virsh list --all | grep -iqs $clonevm
+			then
+				echo -e "\e[33mCloning $clonevm \e[m"
+				virt-clone --auto-clone -o cloyne --name $clonevm
+			#-----Turn on cloned vm without turning on cloyne machine
+			virsh start $clonevm
+			while ! eval "ping 172.17.15.100 -c 5 > /dev/null" 
+			do
+				echo "Clonning machine is starting"
+				sleep 3
+			done
+			#------ get new mac address
+			newmac=$(virsh dumpxml $clonevm | grep "mac address" | cut -d\' -f2)
+			#-----Replace mac and ip, hostname
+			ssh 172.17.15.100 "sed -i 's/.*HW.*/HWADDR\=${newmac}/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne" ## change mac
+			ssh 172.17.15.100 "echo $clonevm.towns.ontario.ops > /etc/hostname "  #change host name
+			ssh 172.17.15.100 "sed -i 's/'172.17.15.100'/'${dict[$clonevm]}'/' /etc/sysconfig/network-scripts/ifcfg-$intcloyne" #change ip
+			echo
+			echo -e "\e[32mCloning Done $clonevm\e[m"
+			ssh 172.17.15.100 init 6
+			fi
 		done
-		#------ get new mac address
-		newmac=$(virsh dumpxml $clonevm | grep "mac address" | cut -d\' -f2)
-		#-----Replace mac and ip, hostname
-		ssh 172.17.15.100 "sed -i 's/.*HW.*/HWADDR\=${newmac}/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne" ## change mac
-		ssh 172.17.15.100 "echo $clonevm.towns.ontario.ops > /etc/hostname "  #change host name
-		ssh 172.17.15.100 "sed -i 's/'172.17.15.100'/'${dict[$clonevm]}'/' /etc/sysconfig/network-scripts/ifcfg-$intcloyne" #change ip
-		echo
-		echo -e "\e[32mCloning Done $clonevm\e[m"
-		ssh 172.17.15.100 init 6
-		fi
-	done
-		#------------------# reset cloyne machine
-	virsh start cloyne
-	while ! eval "ping 172.17.15.100 -c 5 > /dev/null" 
-	do
-		echo "Cloyne machine is starting"
-		sleep 3
-	done
-	ssh 172.17.15.100 "sed -i 's/.*HW.*/${maccloyne}/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne"
-	ssh 172.17.15.100 init 6
+			#------------------# reset cloyne machine
+			virsh start cloyne
+			while ! eval "ping 172.17.15.100 -c 5 > /dev/null" 
+			do
+				echo "Cloyne machine is starting"
+				sleep 3
+			done
+			ssh 172.17.15.100 "sed -i 's/.*HW.*/${maccloyne}/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne"
+			ssh 172.17.15.100 init 6
+	fi
 }		
 clone-machine
 
@@ -483,4 +484,13 @@ echo
 echo -e "\e[32m-------------------LAB COMPLETED--------------\e[m"
 echo
 echo
+echo "---------------INFORMATION YOU WILL NEED-----------------"
+cat > /root/Assignment2-information.txt << EOF
+	IMAP Server: coburg.towns.ontario.ops
+	SMTP Server: kingston.towns.ontario.ops
+	Users for Samba: $username-1 $username-2 $username-admin
+	Password to login: $password
 
+	## All the above information will be stored in  /root/Assignment2-information.txt ##
+EOF
+cat /root/Assignment2-information.txt
