@@ -53,8 +53,8 @@ function require {
 	echo -e "\e[1mBackup your virtual machine to run this script \e[0m"
 	echo
 	read -p "Did you make a backup? [Y/N]: " choice
-	while [[ "$choice" != "Y" && "$choice" != "Yes" && "$choice" != "y" && "$choice" != "yes" ]]
-	do
+	if [[ "$choice" != "Y" && "$choice" != "Yes" && "$choice" != "y" && "$choice" != "yes" ]]
+	then
 		echo -e "\e[33mBacking up in process \e[0m" >&2
 		for shut in $(virsh list --name)  ## --- shutdown vms to backup --- ###
 		do
