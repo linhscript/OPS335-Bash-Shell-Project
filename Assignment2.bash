@@ -366,7 +366,7 @@ EOF
 	ssh 172.17.15.8 chmod -R 770 /documents/private/$users 2> /dev/null
 done
 
-for b in miltonusers
+for b in $miltonusers
 do
 	ssh 172.17.15.8 gpasswd -M $b,$username-admin group$b 2> /dev/null
 done
