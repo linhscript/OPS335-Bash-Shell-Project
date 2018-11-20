@@ -490,8 +490,15 @@ echo
 echo
 echo "---------------INFORMATION YOU WILL NEED-----------------"
 cat > /root/Assignment2-information.txt << EOF
+# Thunderbird configuration on Kingston and Coburg Machines
+
++ Username: $username@towns.ontario.ops
++ Mail Password: $password
 + IMAP Server: coburg.towns.ontario.ops
 + SMTP Server: kingston.towns.ontario.ops
+
+#Samba Configuration on MILTON machine
+
 + Users for Samba: $username-1 $username-2 $username-admin
 + Password to login: $password
 
