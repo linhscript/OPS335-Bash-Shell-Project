@@ -110,7 +110,7 @@ function require {
 
 	check "ping -c 3 google.ca > /dev/null" "Host machine can not ping GOOGLE.CA, check INTERNET connection then run the script again"
 		
-	for ssh_vm in ${!dict[@]} ## -- Checking VMS -- ##
+	for ssh_vm in ${!dict[@]} ## -- Checking VMS -- ## KEY
 	do
 	check "ssh -o ConnectTimeout=5 ${dict[$ssh_vm]} ls > /dev/null" "Can not SSH to $ssh_vm, check and run the script again "
 	check "ssh ${dict[$ssh_vm]} ping -c 3 google.ca > /dev/null" "Can not ping GOOGLE.CA from $ssh_vm, check internet connection then run the script again"
