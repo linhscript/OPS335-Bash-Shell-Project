@@ -55,14 +55,23 @@ function clone-machine {
 		#------ get new mac address
 		newmac=$(virsh dumpxml $clonevm | grep "mac address" | cut -d\' -f2)
 		#-----Replace mac and ip, hostname
-		ssh 172.17.15.100 "sed -i 's/.*HW.*/${newmac}/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne"
+		ssh 172.17.15.100 "sed -i 's/.*HW.*/HWADDR\=${newmac}/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne"
 		ssh 172.17.15.100 "echo $clonevm.towns.ontario.ops > /etc/hostname "
-		ssh 172.17.15.100 "sed -i 's/'172.17.15.100'/'HWADDR\=${dict[$clonevm]}'/' /etc/sysconfig/network-scripts/ifcfg-$intcloyne"
+		ssh 172.17.15.100 "sed -i 's/'172.17.15.100'/'${dict[$clonevm]}'/' /etc/sysconfig/network-scripts/ifcfg-$intcloyne"
 		echo
 		echo -e "\e[32mCloning Done $clonevm\e[m"
 		ssh 172.17.15.100 init 6
 		fi
 	done
+		#------------------# reset cloyne machine
+	virsh start cloyne
+	while ! eval "ping 172.17.15.100 -c 5 > /dev/null" 
+	do
+		echo "Cloyne machine is starting"
+		sleep 3
+	done
+	ssh 172.17.15.100 "sed -i 's/.*HW.*/${maccloyne}/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne"
+	ssh 172.17.15.100 init 6
 }	
 # Need to uncomment cloyne machine when it is done
 
