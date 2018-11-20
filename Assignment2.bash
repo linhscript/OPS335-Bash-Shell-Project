@@ -52,7 +52,7 @@ function require {
 	echo -e "\e[1;31m--------WARNING----------"
 	echo -e "\e[1mBackup your virtual machine to run this script \e[0m"
 	echo
-	read -p "Did you make a backup? [Y/N]: " choice
+	read -p "Did you make a backup? Select N to auto backup [Y/N]:  " choice
 	if [[ "$choice" != "Y" && "$choice" != "Yes" && "$choice" != "y" && "$choice" != "yes" ]]
 	then
 		echo -e "\e[33mBacking up in process \e[0m" >&2
