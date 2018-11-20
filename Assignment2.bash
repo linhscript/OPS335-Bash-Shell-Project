@@ -155,12 +155,12 @@ clone-machine
 
 	########################################
 	echo "Checking VMs status"
-	for vm in ${vms_name[@]}
+	for vm in ${!dict[@]}
 	do 
 		if ! virsh list | grep -iqs $vm
 		then
 			virsh start $vm > /dev/null 2>&1
-			while ! eval "ping $vm -c 5 > /dev/null" 
+			while ! eval "ping ${dict[$vm]} -c 5 > /dev/null" 
 			do
 				echo -e "\e[1;31m $vm is turning on \e[0m" >&2
 				sleep 3
