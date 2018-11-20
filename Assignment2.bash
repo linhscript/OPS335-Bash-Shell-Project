@@ -162,7 +162,7 @@ clone-machine
 			virsh start $vm > /dev/null 2>&1
 			while ! eval "ping ${dict[$vm]} -c 5 > /dev/null" 
 			do
-				echo -e "\e[1;34m $vm is turning on \e[0m" >&2
+				echo -e "\e[1;34mMachine $vm is turning on \e[0m" >&2
 				sleep 3
 			done
 		fi
