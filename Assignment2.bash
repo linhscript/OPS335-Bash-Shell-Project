@@ -82,7 +82,7 @@ function require {
 	do 
 		if ! virsh list --all | grep -iqs $vm
 		then
-			echo "Cloning $vm"
+			echo -e "\e[33mCloning $vm \e[m"
 			virt-clone --auto-clone -o cloyne --name $vm
 		fi
 	done
@@ -415,9 +415,6 @@ ssh 172.17.15.8 systemctl restart smb
 # MX Record
 ssh 172.17.15.2 "sed -i 's/.*MX.*/town.ontario.ops. IN MX 10 coburg.towns.ontario.ops.\ntown.ontario.ops. IN MX 20 kingston.towns.ontario.ops./' /var/named/mydb-for-towns.ontario.ops "
 
-
-# fix selinux which prevents postfix
-#postfix_local_write_mail_spool --> on (coburg and kinsgton)
 
 #Check if it needs to clone any machine =>Yes=> turn on cloyne => ssh to cloyne => Comment Mac address > Turnoff cloyne => Clone machine => Turn on that machine with out turnning on cloyne
 #=> ssh to new machine with cloyne ip address => Also dumpxml to get infor => uncomment mac and replace with new mac => Change IP, hostname => restart machine 
