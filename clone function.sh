@@ -64,4 +64,5 @@ function clone-machine {
 		fi
 	done
 }	
+# Need to uncomment cloyne machine when it is done
 
