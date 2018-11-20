@@ -85,7 +85,7 @@ function clone-machine {
 			echo "$vm need to be created"
 			echo
 			echo
-			$count+=1
+			count=1
 		fi
 	done
 	#----------------------------------------# Setup cloyne to be cloneable
@@ -103,7 +103,7 @@ function clone-machine {
 		check "ssh -o ConnectTimeout=5 172.17.15.100 ls > /dev/null" "Can not SSH to Cloyne, check and run the script again"
 		intcloyne=$( ssh 172.17.15.100 '( ifconfig | grep -B 1 172.17.15 | head -1 | cut -d: -f1 )' )  #### grab interface infor (some one has ens3)
 		maccloyne=$(ssh 172.17.15.100 grep "^HW.*" /etc/sysconfig/network-scripts/ifcfg-$intcloyne) #### grab mac address
-		ssh 172.17.15.100 "sed 's/'$maccloyne'/#'$maccloyne'/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne " #ssh to cloyne and comment mac address
+		ssh 172.17.15.100 "sed -i 's/${maccloyne}/#${maccloyne}/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne " #ssh to cloyne and comment mac address
 		check "ssh 172.17.15.100 grep -v -e '.*DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-$intcloyne > ipconf.txt" "File or directory not exist"
 		echo "DNS1="172.17.15.2"" >> ipconf.txt
 		echo "DNS2="172.17.15.3"" >> ipconf.txt
@@ -122,25 +122,34 @@ function clone-machine {
 		then
 			echo -e "\e[33mCloning $clonevm \e[m"
 			virt-clone --auto-clone -o cloyne --name $clonevm
-		fi
 		#-----Turn on cloned vm without turning on cloyne machine
 		virsh start $clonevm
 		while ! eval "ping 172.17.15.100 -c 5 > /dev/null" 
 		do
-			echo "Cloyne machine is starting"
+			echo "Clonning machine is starting"
 			sleep 3
 		done
 		#------ get new mac address
 		newmac=$(virsh dumpxml $clonevm | grep "mac address" | cut -d\' -f2)
 		#-----Replace mac and ip, hostname
-		ssh 172.17.15.100 "sed 's/'$mac'/'$newmac'/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne"
-		ssh 172.17.15.100 "echo $clonevm.towns.ontario.ops > /etc/hostname "
-		ssh 172.17.15.100 "sed 's/'172.17.15.100'/'${dict[$clonevm]}'/' /etc/sysconfig/network-scripts/ifcfg-$intcloyne"
+		ssh 172.17.15.100 "sed -i 's/.*HW.*/HWADDR\=${newmac}/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne" ## change mac
+		ssh 172.17.15.100 "echo $clonevm.towns.ontario.ops > /etc/hostname "  #change host name
+		ssh 172.17.15.100 "sed -i 's/'172.17.15.100'/'${dict[$clonevm]}'/' /etc/sysconfig/network-scripts/ifcfg-$intcloyne" #change ip
 		echo
 		echo -e "\e[32mCloning Done $clonevm\e[m"
 		ssh 172.17.15.100 init 6
+		fi
 	done
-}	
+		#------------------# reset cloyne machine
+	virsh start cloyne
+	while ! eval "ping 172.17.15.100 -c 5 > /dev/null" 
+	do
+		echo "Cloyne machine is starting"
+		sleep 3
+	done
+	ssh 172.17.15.100 "sed -i 's/.*HW.*/${maccloyne}/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne"
+	ssh 172.17.15.100 init 6
+}		
 clone-machine
 
 	########################################
