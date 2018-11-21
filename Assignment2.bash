@@ -52,10 +52,10 @@ function require {
 	echo -e "\e[1;31m--------WARNING----------"
 	echo -e "\e[1mBackup your virtual machine to run this script \e[0m"
 	echo
-	read -p "Did you make a backup? Select N to auto backup [Y/N]:  " choice
+	read -p "Did you make a backup? Select N to start auto backup [Y/N]:  " choice
 	if [[ "$choice" != "Y" && "$choice" != "Yes" && "$choice" != "y" && "$choice" != "yes" ]]
 	then
-		echo -e "\e[33mBacking up in process \e[0m" >&2
+		echo -e "\e[1;35mBacking up in process. Wait... \e[0m" >&2
 		for shut in $(virsh list --name)  ## --- shutdown vms to backup --- ###
 		do
 			virsh shutdown $shut
@@ -76,7 +76,7 @@ function require {
 
 	### 3.Checking VMs need to be clone and status ----------------------------------
 function clone-machine {
-	echo "Checking clone machine"
+	echo -e "\e[1;35mChecking clone machine\e[m"
 	count=0
 	for vm in ${vms_name[@]}
 	do 
@@ -93,7 +93,7 @@ function clone-machine {
 	then
 		echo -e "\e[35mStart cloning machines\e[m"
 		echo
-		echo "Cloning in progress..."
+		echo -e "\e[1;32mCloning in progress...\e[m"
 		virsh start cloyne 2> /dev/null
 		while ! eval "ping 172.17.15.100 -c 5 > /dev/null" 
 		do
@@ -120,7 +120,7 @@ function clone-machine {
 		do 
 			if ! virsh list --all | grep -iqs $clonevm
 			then
-				echo -e "\e[33mCloning $clonevm \e[m"
+				echo -e "\e[1;35mCloning $clonevm \e[m"
 				virt-clone --auto-clone -o cloyne --name $clonevm
 			#-----Turn on cloned vm without turning on cloyne machine
 			virsh start $clonevm
@@ -154,7 +154,7 @@ function clone-machine {
 clone-machine
 
 	########################################
-	echo "Checking VMs status"
+	echo -e "\e[1;35mChecking VMs status\e[m"
 	for vm in ${!dict[@]}
 	do 
 		if ! virsh list | grep -iqs $vm
@@ -383,6 +383,7 @@ ssh 172.17.15.6 "sed -i 's/^#root.*/root = "$username"/' /etc/aliases "
 
 
 # Iptables
+echo -e "\e[1;35mAdding iptables rules\e[m"
 ssh 172.17.15.6 iptables -C INPUT -p tcp --dport 143 -s 172.17.15.0/24 -j ACCEPT 2> /dev/null || ssh 172.17.15.6 iptables -I INPUT -p tcp --dport 143 -s 172.17.15.0/24 -j ACCEPT
 ssh 172.17.15.6 iptables -C INPUT -p tcp --dport 25 -j ACCEPT 2> /dev/null || ssh 172.17.15.6 iptables -I INPUT -p tcp --dport 25 -j ACCEPT
 ssh 172.17.15.6 iptables -C INPUT -p udp --dport 25 -j ACCEPT 2> /dev/null || ssh 172.17.15.6 iptables -I INPUT -p udp --dport 25 -j ACCEPT
@@ -406,7 +407,7 @@ check "scp ipconf.txt 172.17.15.8:/etc/sysconfig/network-scripts/ifcfg-$intmilto
 rm -rf ipconf.txt > /dev/null
 
 # Install packages
-echo -e "\e[1;35mInstall packages\e[m"
+echo -e "\e[1;35mInstall packages on MILTON\e[m"
 check "ssh 172.17.15.8 yum install -y samba*" "Can not install samba"
 echo -e "\e[32mDone Installation \e[m"
 check "ssh 172.17.15.8 systemctl start smb" "Can not start services on MILTON"
@@ -452,7 +453,7 @@ echo -e "\e[32mUsers and Folders Created \e[m"
 cat > smb.conf << EOF
 
 [global]
-workgroup = SENEDS
+workgroup = WORKGROUP
 server string = $fullname - Assignment 2
 encrypt passwords = yes
 smb passwd file = /etc/samba/smbpasswd
@@ -485,7 +486,7 @@ ssh 172.17.15.2 "sed -i 's/.*MX.*/town.ontario.ops. IN MX 10 coburg.towns.ontari
 
 echo
 echo
-echo -e "\e[32m-------------------LAB COMPLETED--------------\e[m"
+echo -e "\e[1;32m-------------------LAB COMPLETED--------------\e[m"
 echo
 echo
 echo "---------------INFORMATION YOU WILL NEED-----------------"
