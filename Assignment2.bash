@@ -100,6 +100,7 @@ function clone-machine {
 			echo "Cloyne machine is starting"
 			sleep 3
 		done
+		sleep 3
 		check "ssh -o ConnectTimeout=8 172.17.15.100 ls > /dev/null" "Can not SSH to Cloyne, check and run the script again"
 		intcloyne=$( ssh 172.17.15.100 '( ip ad | grep -B 2 172.17.15 | head -1 | cut -d" " -f2 | cut -d: -f1 )' )  #### grab interface infor (some one has ens3)
 		maccloyne=$(ssh 172.17.15.100 grep "^HW.*" /etc/sysconfig/network-scripts/ifcfg-$intcloyne) #### grab mac address
