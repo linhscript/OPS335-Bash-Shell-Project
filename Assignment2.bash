@@ -194,7 +194,7 @@ require
 ## KINGSTON MACHINE ###
 
 # Network and hostname 
-intkingston=$( ssh 172.17.15.5 '( ifconfig | grep -B 1 172.17.15 | head -1 | cut -d: -f1 )' )
+intkingston=$( ssh 172.17.15.5 '( ip ad | grep -B 2 172.17.15 | head -1 | cut -d" " -f2 | cut -d: -f1 )' )
 ssh 172.17.15.5 "echo kingston.towns.ontario.ops > /etc/hostname"
 check "ssh 172.17.15.5 grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-$intkingston > ipconf.txt" "File or directory not exist"
 echo "DNS1="172.17.15.2"" >> ipconf.txt
@@ -264,7 +264,7 @@ ssh 172.17.15.5 systemctl restart postfix
 ######################### COBURG MACHINE
 
 # Network and hostname 
-intcoburg=$( ssh 172.17.15.6 '( ifconfig | grep -B 1 172.17.15 | head -1 | cut -d: -f1 )' )
+intcoburg=$( ssh 172.17.15.6 '( ip ad | grep -B 2 172.17.15 | head -1 | cut -d" " -f2 | cut -d: -f1 )' )
 ssh 172.17.15.6 "echo coburg.towns.ontario.ops > /etc/hostname"
 check "ssh 172.17.15.6 grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-$intcoburg > ipconf.txt" "File or directory not exist"
 echo "DNS1="172.17.15.2"" >> ipconf.txt
