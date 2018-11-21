@@ -142,13 +142,14 @@ function clone-machine {
 			fi
 		done
 			#------------------# reset cloyne machine
+			oldmac=$(virsh dumpxml cloyne | grep "mac address" | cut -d\' -f2)
 			virsh start cloyne > /dev/null 2>&1
 			while ! eval "ping 172.17.15.100 -c 5 > /dev/null" 
 			do
 				echo "Cloyne machine is starting"
 				sleep 3
 			done
-			ssh 172.17.15.100 "sed -i 's/.*HW.*/${maccloyne}/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne"
+			ssh 172.17.15.100 "sed -i 's/.*HW.*/${oldmac}/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne"
 			ssh 172.17.15.100 init 6
 	fi
 }		
@@ -397,7 +398,7 @@ ssh 172.17.15.6 systemctl restart dovecot
 
 ## MILTON MACHINE
 # Network and hostname 
-intmilton=$( ssh 172.17.15.8 '( ifconfig | grep -B 1 172.17.15 | head -1 | cut -d: -f1 )' )
+intmilton=$( ssh 172.17.15.8 '( ip ad | grep -B 2 172.17.15 | head -1 | cut -d" " -f2 | cut -d: -f1 )' )
 ssh 172.17.15.8 "echo milton.towns.ontario.ops > /etc/hostname"
 check "ssh 172.17.15.8 grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-$intmilton > ipconf.txt" "File or directory not exist"
 echo "DNS1="172.17.15.2"" >> ipconf.txt
