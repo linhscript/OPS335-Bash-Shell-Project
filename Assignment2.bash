@@ -492,8 +492,10 @@ echo
 echo -e "\e[1;32m-------------------LAB COMPLETED--------------\e[m"
 echo
 echo
-echo "---------------INFORMATION YOU WILL NEED-----------------"
+echo 
 cat > /root/Assignment2-information.txt << EOF
+---------------INFORMATION YOU WILL NEED--------------------
+
 # Thunderbird configuration on Kingston and Coburg Machines
 
 + Username: $username@towns.ontario.ops
@@ -507,5 +509,6 @@ cat > /root/Assignment2-information.txt << EOF
 + Password to login: $password
 
 ## All the above information will be stored in  /root/Assignment2-information.txt ##
+------------------------------------------------------------
 EOF
 cat /root/Assignment2-information.txt
