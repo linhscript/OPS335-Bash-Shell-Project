@@ -116,7 +116,7 @@ cat > named.conf << EOF
 options {
 	directory "/var/named";
         allow-query { localhost;any;};
-        forwarders {$fdigit.1;};
+        forwarders {172.17.15.1;};
         allow-recursion {localhost;172.17.15.0/24;};
 };
 
@@ -156,8 +156,6 @@ cat > 'mydb-for-towns.ontario.ops' << EOF
 );
 @               IN	NS	toronto.towns.ontario.ops.
 @               IN	NS	ottawa.towns.ontario.ops.
-@               IN	A	172.17.15.2
-@               IN	A	172.17.15.3
 toronto         IN	A	172.17.15.2
 ottawa          IN	A	172.17.15.3
 york            IN	A	172.17.15.1
@@ -184,7 +182,6 @@ cat > 'mydb-for-172.17.15' << EOF
 );
 @               IN	NS	toronto.towns.ontario.ops.
 @               IN	NS	ottawa.towns.ontario.ops.
-@               IN	PTR     towns.ontario.ops.
 2               IN	PTR     toronto.towns.ontario.ops.
 3               IN	PTR     ottawa.towns.ontario.ops.
 1               IN	PTR     york.towns.ontario.ops.
@@ -207,9 +204,7 @@ iptables -t filter -F
 iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 iptables -A INPUT -i lo -j ACCEPT
 iptables -A INPUT -p udp --dport 53 -j ACCEPT
-iptables -A INPUT -p udp --sport 53 -j ACCEPT
 iptables -A INPUT -p tcp --dport 53 -j ACCEPT
-iptables -A INPUT -p tcp --sport 53 -j ACCEPT
 iptables -A INPUT -p icmp -s 172.17.15.0/24 -j ACCEPT
 iptables -A INPUT -p tcp -s 172.17.15.1 --dport 22 -j ACCEPT
 iptables -A INPUT -j DROP
@@ -258,7 +253,6 @@ cat > named.conf << EOF
 options {
 	directory "/var/named";
         allow-query { localhost; 172.17.15.0/24; };
-        forwarders {$fdigit.1; };
         recursion no;
 };
 
