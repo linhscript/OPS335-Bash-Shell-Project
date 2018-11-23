@@ -16,9 +16,14 @@ function check() {
      		exit 1
 	fi	
 }
+virsh start vm1 > /dev/null 2>&1
+virsh start vm2 > /dev/null 2>&1
+virsh start vm3 > /dev/null 2>&1
+list_vms="vm1 vm2 vm3"
 read -p "What is your Seneca username: " username
 read -p "What is your IP Address of VM1: " IP
 digit=$( echo "$IP" | awk -F. '{print $3}' )
+domain=$username.ops
 
 ##Checking running script by root###
 if [ `id -u` -ne 0 ]
@@ -135,6 +140,9 @@ clear
 echo	
 echo -e "###\e[32mConfiguration Done\e[m###"
 echo
+
+### CONFIG USERNAME, HOSTNAME, DOMAIN VM1,2,3
+
 
 
 
