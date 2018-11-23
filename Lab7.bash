@@ -132,17 +132,23 @@ echo -e "\e[32mUser Created \e[m"
 
 # Install packages
 echo -e "\e[1;35mInstall packages\e[m"
-check "ssh 192.168.${digit}.4 yum install -y ypbind postfix" "Can not install mailx and postfix"
+check "ssh 192.168.${digit}.4 yum install -y ypbind ypserv" "Can not install ypbind and ypserv"
 echo -e "\e[32mDone Installation \e[m"
 ssh 192.168.${digit}.4 setenforce permissive
-check "ssh 192.168.${digit}.4 systemctl start postfix" "Can not start services on VM3"
-check "ssh 192.168.${digit}.4 systemctl enable postfix" "Can not enable services on VM3"
+check "ssh 192.168.${digit}.4 systemctl start ypbind" "Can not start services on VM3"
+check "ssh 192.168.${digit}.4 systemctl enable ypbind" "Can not enable services on VM3"
+check "ssh 192.168.${digit}.4 systemctl start ypserv" "Can not start services on VM3"
+check "ssh 192.168.${digit}.4 systemctl enable ypserv" "Can not enable services on VM3"
 ssh 192.168.${digit}.4 "echo "192.168.${octet}.1:/home	/home	nfs4	defaults	0 0" >> /etc/fstab "
 
 
-## HOST MACHINE
 
-echo "/home 192.168.${octet}.0/24(rw,no_root_squash,insecure)" > /etc/exports
+
+
+
+## HOST MACHINE CONFIGURATION
+
+echo "/home 192.168.${digit}.0/24(rw,no_root_squash,insecure)" > /etc/exports
 systemctl enable nfs-server
 systemctl start nfs-server
 sed -i "/^COMMIT/i -A INPUT -p tcp --dport 2049 -s 192.168.${digit}.0/24 -j ACCEPT" /etc/sysconfig/iptables
