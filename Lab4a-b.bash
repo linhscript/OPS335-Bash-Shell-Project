@@ -308,4 +308,5 @@ ssh 192.168.$digit.4 iptables-save > /etc/sysconfig/iptables
 ssh 192.168.$digit.4 service iptables save
 ssh 192.168.$digit.4 systemctl restart postfix
 ssh 192.168.$digit.4 systemctl restart dovecot
+
 ## --------VM3 DONE------------ ####
