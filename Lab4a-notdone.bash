@@ -15,7 +15,7 @@ function require {
 		fi	
 	}
 		### ALL INPUT BEFORE CHECKING #### -------------------
-		#domain="towns.ontario.ops"
+		
 
 		
 		### INPUT from USER ###
@@ -114,7 +114,7 @@ require
 ### Start configuarion VM2: SMTP Machine
 # Network and hostname 
 intvm2=$( ssh 192.168.$digit.3 '( ip ad | grep -B 2 192.168.$digit | head -1 | cut -d" " -f2 | cut -d: -f1 )' )
-ssh 192.168.$digit.3 "echo kingston.towns.ontario.ops > /etc/hostname"
+ssh 192.168.$digit.3 "echo vm3.$domain > /etc/hostname"
 check "ssh 192.168.$digit.3 grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-$intvm2 > ipconf.txt" "File or directory not exist"
 echo "DNS1="192.168.$digit.1"" >> ipconf.txt
 echo "PEERDNS=no" >> ipconf.txt
@@ -167,7 +167,7 @@ readme_directory = /usr/share/doc/postfix-2.10.1/README_FILES
  
 EOF
 
-check "scp main.cf 192.168.$digit.3:/etc/postfix/main.cf" "Can not copy main.cf to kingston "
+check "scp main.cf 192.168.$digit.3:/etc/postfix/main.cf" "Can not copy main.cf to VM2 "
 rm -rf main.cf > /dev/null
 sleep 2
 
@@ -179,34 +179,33 @@ ssh 192.168.$digit.3 service iptables save
 ssh 192.168.$digit.3 systemctl restart postfix
 ## --------VM2 DONE------------ ####
 
-######################### COBURG MACHINE
+######################### VM3 MACHINE
 
 # Network and hostname 
-intcoburg=$( ssh 172.17.15.6 '( ip ad | grep -B 2 172.17.15 | head -1 | cut -d" " -f2 | cut -d: -f1 )' )
-ssh 172.17.15.6 "echo coburg.towns.ontario.ops > /etc/hostname"
-check "ssh 172.17.15.6 grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-$intcoburg > ipconf.txt" "File or directory not exist"
-echo "DNS1="172.17.15.2"" >> ipconf.txt
-echo "DNS2="172.17.15.3"" >> ipconf.txt
+intvm3=$( ssh 192.168.$digit.4 '( ip ad | grep -B 2 192.168.$digit | head -1 | cut -d" " -f2 | cut -d: -f1 )' )
+ssh 192.168.$digit.4 "echo vm3.$domain > /etc/hostname"
+check "ssh 192.168.$digit.4 grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-$intvm3 > ipconf.txt" "File or directory not exist"
+echo "DNS1="192.168.$digit.1"" >> ipconf.txt
 echo "PEERDNS=no" >> ipconf.txt
-echo "DOMAIN=towns.ontario.ops" >> ipconf.txt
-check "scp ipconf.txt 172.17.15.6:/etc/sysconfig/network-scripts/ifcfg-$intcoburg > /dev/null" "Can not copy ipconf to COBURG"
+echo "DOMAIN=$domain" >> ipconf.txt
+check "scp ipconf.txt 192.168.$digit.4:/etc/sysconfig/network-scripts/ifcfg-$intvm3 > /dev/null" "Can not copy ipconf to VM3"
 rm -rf ipconf.txt > /dev/null
 
 # Create user
 echo -e "\e[1;35mCreate regular user\e[m"
-ssh 172.17.15.6 useradd -m $username 2> /dev/null
-ssh 172.17.15.6 '( echo '$username:$password' | chpasswd )'
+ssh 192.168.$digit.4 useradd -m $username 2> /dev/null
+ssh 192.168.$digit.4 '( echo '$username:$password' | chpasswd )'
 echo -e "\e[32mUser Created \e[m"
 
 # Install packages
 echo -e "\e[1;35mInstall packages\e[m"
-check "ssh 172.17.15.6 yum install -y mailx postfix dovecot" "Can not install mailx and postfix and dovecot"
+check "ssh 192.168.$digit.4 yum install -y mailx postfix dovecot" "Can not install mailx and postfix and dovecot"
 echo -e "\e[32mDone Installation \e[m"
-ssh 172.17.15.6 setenforce permissive
-check "ssh 172.17.15.6 systemctl start postfix" "Can not start services on COBURG"
-check "ssh 172.17.15.6 systemctl start dovecot" "Can not start services on COBURG"
-check "ssh 172.17.15.6 systemctl enable postfix" "Can not enable services on COBURG"
-check "ssh 172.17.15.6 systemctl enable dovecot" "Can not enable services on COBURG"
+ssh 192.168.$digit.4 setenforce permissive
+check "ssh 192.168.$digit.4 systemctl start postfix" "Can not start services on VM3"
+check "ssh 192.168.$digit.4 systemctl start dovecot" "Can not start services on VM3"
+check "ssh 192.168.$digit.4 systemctl enable postfix" "Can not enable services on VM3"
+check "ssh 192.168.$digit.4 systemctl enable dovecot" "Can not enable services on VM3"
 # /Etc/postfix/main.cf
 cat > main.cf << EOF
 queue_directory = /var/spool/postfix
@@ -214,13 +213,13 @@ command_directory = /usr/sbin
 daemon_directory = /usr/libexec/postfix
 data_directory = /var/lib/postfix
 mail_owner = postfix
-mydomain = towns.ontario.ops
+mydomain = $domain
 myorigin = \$mydomain
 inet_interfaces = all
 inet_protocols = all
 mydestination = \$mydomain,\$myhostname, localhost.\$mydomain, localhost
 unknown_local_recipient_reject_code = 550
-mynetworks = 172.17.15.0/24, 127.0.0.0/8
+mynetworks = 192.168.$digit.0/24, 127.0.0.0/8
 alias_maps = hash:/etc/aliases
 alias_database = hash:/etc/aliases
 mailbox_command = /usr/libexec/dovecot/dovecot-lda -f "\$SENDER" -a "\$RECIPIENT"
@@ -239,7 +238,7 @@ readme_directory = /usr/share/doc/postfix-2.10.1/README_FILES
 
 EOF
 
-check "scp main.cf 172.17.15.6:/etc/postfix/main.cf" "Can not copy main.cf to coburg "
+check "scp main.cf 192.168.$digit.4:/etc/postfix/main.cf" "Can not copy main.cf to VM3 "
 rm -rf main.cf > /dev/null
 sleep 2
 
@@ -253,7 +252,7 @@ first_valid_uid = 1000
 mbox_write_locks = fcntl
 
 EOF
-check "scp 10-mail.conf 172.17.15.6:/etc/dovecot/conf.d/10-mail.conf" "Can not copy 10-mail.conf to coburg "
+check "scp 10-mail.conf 192.168.$digit.4:/etc/dovecot/conf.d/10-mail.conf" "Can not copy 10-mail.conf to VM3 "
 rm -rf 10-mail.conf > /dev/null
 sleep 2
 
@@ -266,11 +265,11 @@ dict {
 }
 !include conf.d/*.conf
 !include_try local.conf
-postmaster_address = towns.ontario.ops
+postmaster_address = $domain
 
 EOF
-check "scp dovecot.conf 172.17.15.6:/etc/dovecot/dovecot.conf" "Can not copy dovecot.conf to coburg "
-rm -rf dovecot.conf > /dev/null
+check "scp dovecot.conf 192.168.$digit.4:/etc/dovecot/dovecot.conf" "Can not copy dovecot.conf to VM3 "
+rm -rf dovecot.conf > /dev/null	
 sleep 2
 
 # 10-auth.conf
@@ -280,7 +279,7 @@ auth_mechanisms = plain
 !include auth-system.conf.ext
 
 EOF
-check "scp 10-auth.conf  172.17.15.6:/etc/dovecot/conf.d/10-auth.conf" "Can not copy 10-auth.conf  to coburg "
+check "scp 10-auth.conf  192.168.$digit.4:/etc/dovecot/conf.d/10-auth.conf" "Can not copy 10-auth.conf  to VM3 "
 rm -rf 10-auth.conf  > /dev/null
 sleep 2
 
@@ -291,22 +290,22 @@ ssl_cert = </etc/pki/dovecot/certs/dovecot.pem
 ssl_key = </etc/pki/dovecot/private/dovecot.pem
 
 EOF
-check "scp 10-ssl.conf 172.17.15.6:/etc/dovecot/conf.d/10-ssl.conf" "Can not copy 10-ssl.conf to coburg "
+check "scp 10-ssl.conf 192.168.$digit.4:/etc/dovecot/conf.d/10-ssl.conf" "Can not copy 10-ssl.conf to VM3 "
 rm -rf 10-ssl.conf > /dev/null
 sleep 2
 
 # Aliases
 
-ssh 172.17.15.6 "sed -i 's/^#root.*/root = "$username"/' /etc/aliases "
+ssh 192.168.$digit.4 "sed -i 's/^#root.*/root = "$username"/' /etc/aliases "
 
 
 # Iptables
 echo -e "\e[1;35mAdding iptables rules\e[m"
-ssh 172.17.15.6 iptables -C INPUT -p tcp --dport 143 -s 172.17.15.0/24 -j ACCEPT 2> /dev/null || ssh 172.17.15.6 iptables -I INPUT -p tcp --dport 143 -s 172.17.15.0/24 -j ACCEPT
-ssh 172.17.15.6 iptables -C INPUT -p tcp --dport 25 -j ACCEPT 2> /dev/null || ssh 172.17.15.6 iptables -I INPUT -p tcp --dport 25 -j ACCEPT
-ssh 172.17.15.6 iptables -C INPUT -p udp --dport 25 -j ACCEPT 2> /dev/null || ssh 172.17.15.6 iptables -I INPUT -p udp --dport 25 -j ACCEPT
-ssh 172.17.15.6 iptables-save > /etc/sysconfig/iptables
-ssh 172.17.15.6 service iptables save
-ssh 172.17.15.6 systemctl restart postfix
-ssh 172.17.15.6 systemctl restart dovecot
-## --------COBURG DONE------------ ####
+ssh 192.168.$digit.4 iptables -C INPUT -p tcp --dport 143 -s 192.168.$digit.0/24 -j ACCEPT 2> /dev/null || ssh 192.168.$digit.4 iptables -I INPUT -p tcp --dport 143 -s 192.168.$digit.0/24 -j ACCEPT
+ssh 192.168.$digit.4 iptables -C INPUT -p tcp --dport 25 -j ACCEPT 2> /dev/null || ssh 192.168.$digit.4 iptables -I INPUT -p tcp --dport 25 -j ACCEPT
+ssh 192.168.$digit.4 iptables -C INPUT -p udp --dport 25 -j ACCEPT 2> /dev/null || ssh 192.168.$digit.4 iptables -I INPUT -p udp --dport 25 -j ACCEPT
+ssh 192.168.$digit.4 iptables-save > /etc/sysconfig/iptables
+ssh 192.168.$digit.4 service iptables save
+ssh 192.168.$digit.4 systemctl restart postfix
+ssh 192.168.$digit.4 systemctl restart dovecot
+## --------VM3 DONE------------ ####
