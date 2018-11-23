@@ -25,6 +25,7 @@ function require {
 		read -s -p "Type your normal password: " password && echo
 		IP=$(cat /var/named/mydb-for-* | grep ^vm1 | head -1 | awk '{print $4}')
 		digit=$(cat /var/named/mydb-for-* | grep ^vm2 | head -1 | awk '{print $4}' | cut -d. -f3)
+		domain=$username.ops
 		vms_name=(vm2 vm3)   
 		vms_ip=(192.168.$digit.3 192.168.$digit.4)	
 		
@@ -72,86 +73,6 @@ function require {
 			done
 		fi
 
-		### 3.Checking VMs need to be clone and status ----------------------------------
-	function clone-machine {
-		echo -e "\e[1;35mChecking clone machine\e[m"
-		count=0
-		for vm in ${vms_name[@]}
-		do 
-			if ! virsh list --all | grep -iqs $vm
-			then
-				echo "$vm need to be created"
-				echo
-				echo
-				count=1
-			fi
-		done
-		#----------------------------------------# Setup cloyne to be cloneable
-		if [ $count -gt 0 ]
-		then
-			echo -e "\e[35mStart cloning machines\e[m"
-			echo
-			echo -e "\e[1;32mCloning in progress...\e[m"
-			virsh start cloyne 2> /dev/null
-			while ! eval "ping 172.17.15.100 -c 5 > /dev/null" 
-			do
-				echo "Cloyne machine is starting"
-				sleep 3
-			done
-			sleep 3
-			check "ssh -o ConnectTimeout=8 172.17.15.100 ls > /dev/null" "Can not SSH to Cloyne, check and run the script again"
-			intcloyne=$( ssh 172.17.15.100 '( ip ad | grep -B 2 172.17.15 | head -1 | cut -d" " -f2 | cut -d: -f1 )' )  #### grab interface infor (some one has ens3)
-			maccloyne=$(ssh 172.17.15.100 grep "^HW.*" /etc/sysconfig/network-scripts/ifcfg-$intcloyne) #### grab mac address
-			ssh 172.17.15.100 "sed -i 's/${maccloyne}/#${maccloyne}/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne " #ssh to cloyne and comment mac address
-			check "ssh 172.17.15.100 grep -v -e '.*DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-$intcloyne > ipconf.txt" "File or directory not exist"
-			echo "DNS1="172.17.15.2"" >> ipconf.txt
-			echo "DNS2="172.17.15.3"" >> ipconf.txt
-			echo "PEERDNS=no" >> ipconf.txt
-			echo "DOMAIN=towns.ontario.ops" >> ipconf.txt
-			check "scp ipconf.txt 172.17.15.100:/etc/sysconfig/network-scripts/ifcfg-$intcloyne > /dev/null" "Can not copy ipconf to Cloyne"
-			rm -rf ipconf.txt > /dev/null
-			sleep 2
-			echo -e "\e[32mCloyne machine info has been collected\e[m"
-			virsh destroy cloyne			
-		
-			#---------------------------# Start cloning
-			for clonevm in ${!dict[@]} # Key (name vm)
-			do 
-				if ! virsh list --all | grep -iqs $clonevm
-				then
-					echo -e "\e[1;35mCloning $clonevm \e[m"
-					virt-clone --auto-clone -o cloyne --name $clonevm
-				#-----Turn on cloned vm without turning on cloyne machine
-				virsh start $clonevm
-				while ! eval "ping 172.17.15.100 -c 5 > /dev/null" 
-				do
-					echo "Clonning machine is starting"
-					sleep 3
-				done
-				#------ get new mac address
-				newmac=$(virsh dumpxml $clonevm | grep "mac address" | cut -d\' -f2)
-				#-----Replace mac and ip, hostname
-				ssh 172.17.15.100 "sed -i 's/.*HW.*/HWADDR\=${newmac}/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne" ## change mac
-				ssh 172.17.15.100 "echo $clonevm.towns.ontario.ops > /etc/hostname "  #change host name
-				ssh 172.17.15.100 "sed -i 's/'172.17.15.100'/'${dict[$clonevm]}'/' /etc/sysconfig/network-scripts/ifcfg-$intcloyne" #change ip
-				echo
-				echo -e "\e[32mCloning Done $clonevm\e[m"
-				ssh 172.17.15.100 init 6
-				fi
-			done
-				#------------------# reset cloyne machine
-				oldmac=$(virsh dumpxml cloyne | grep "mac address" | cut -d\' -f2)
-				virsh start cloyne > /dev/null 2>&1
-				while ! eval "ping 172.17.15.100 -c 5 > /dev/null" 
-				do
-					echo "Cloyne machine is starting"
-					sleep 3
-				done
-				ssh 172.17.15.100 "sed -i 's/.*HW.*/${oldmac}/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne"
-				ssh 172.17.15.100 init 6
-		fi
-	}		
-	clone-machine
 
 	########################################
 	echo -e "\e[1;35mChecking VMs status\e[m"
@@ -188,3 +109,204 @@ function require {
 	
 }
 require
+
+
+### Start configuarion VM2: SMTP Machine
+# Network and hostname 
+intvm2=$( ssh 192.168.$digit.3 '( ip ad | grep -B 2 192.168.$digit | head -1 | cut -d" " -f2 | cut -d: -f1 )' )
+ssh 192.168.$digit.3 "echo kingston.towns.ontario.ops > /etc/hostname"
+check "ssh 192.168.$digit.3 grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-$intvm2 > ipconf.txt" "File or directory not exist"
+echo "DNS1="192.168.$digit.1"" >> ipconf.txt
+echo "PEERDNS=no" >> ipconf.txt
+echo "DOMAIN=$domain" >> ipconf.txt
+check "scp ipconf.txt 192.168.$digit.3:/etc/sysconfig/network-scripts/ifcfg-$intvm2 > /dev/null" "Can not copy ipconf to VM2"
+rm -rf ipconf.txt > /dev/null
+
+# Create user
+echo -e "\e[1;35mCreate regular user\e[m"
+ssh 192.168.$digit.3 useradd -m $username 2> /dev/null
+ssh 192.168.$digit.3 '( echo '$username:$password' | chpasswd )'
+echo -e "\e[32mUser Created \e[m"
+
+# Install packages
+echo -e "\e[1;35mInstall packages\e[m"
+check "ssh 192.168.$digit.3 yum install -y mailx postfix" "Can not install mailx and postfix"
+echo -e "\e[32mDone Installation \e[m"
+ssh 192.168.$digit.3 setenforce permissive
+check "ssh 192.168.$digit.3 systemctl start postfix" "Can not start services on VM2"
+check "ssh 192.168.$digit.3 systemctl enable postfix" "Can not enable services on VM2"
+
+# /Etc/main.cf file
+cat > main.cf << EOF
+queue_directory = /var/spool/postfix
+command_directory = /usr/sbin
+daemon_directory = /usr/libexec/postfix
+data_directory = /var/lib/postfix
+mail_owner = postfix
+mydomain = $mydomain
+myorigin = \$mydomain
+inet_interfaces = all
+inet_protocols = all
+mydestination =  \$myhostname
+unknown_local_recipient_reject_code = 550
+relayhost = vm3.$mydomain
+alias_maps = hash:/etc/aliases
+alias_database = hash:/etc/aliases
+debug_peer_level = 2
+debugger_command =
+	 PATH=/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin
+	 ddd \$daemon_directory/\$process_name \$process_id & sleep 5
+sendmail_path = /usr/sbin/sendmail.postfix
+newaliases_path = /usr/bin/newaliases.postfix
+mailq_path = /usr/bin/mailq.postfix
+setgid_group = postdrop
+html_directory = no
+manpage_directory = /usr/share/man
+sample_directory = /usr/share/doc/postfix-2.10.1/samples
+readme_directory = /usr/share/doc/postfix-2.10.1/README_FILES
+ 
+EOF
+
+check "scp main.cf 192.168.$digit.3:/etc/postfix/main.cf" "Can not copy main.cf to kingston "
+rm -rf main.cf > /dev/null
+sleep 2
+
+# Iptables
+ssh 192.168.$digit.3 iptables -C INPUT -p tcp --dport 25 -j ACCEPT 2> /dev/null || ssh 192.168.$digit.3 iptables -I INPUT -p tcp --dport 25 -j ACCEPT
+ssh 192.168.$digit.3 iptables -C INPUT -p udp --dport 25 -j ACCEPT 2> /dev/null || ssh 192.168.$digit.3 iptables -I INPUT -p udp --dport 25 -j ACCEPT
+ssh 192.168.$digit.3 iptables-save > /etc/sysconfig/iptables
+ssh 192.168.$digit.3 service iptables save
+ssh 192.168.$digit.3 systemctl restart postfix
+## --------VM2 DONE------------ ####
+
+######################### COBURG MACHINE
+
+# Network and hostname 
+intcoburg=$( ssh 172.17.15.6 '( ip ad | grep -B 2 172.17.15 | head -1 | cut -d" " -f2 | cut -d: -f1 )' )
+ssh 172.17.15.6 "echo coburg.towns.ontario.ops > /etc/hostname"
+check "ssh 172.17.15.6 grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-$intcoburg > ipconf.txt" "File or directory not exist"
+echo "DNS1="172.17.15.2"" >> ipconf.txt
+echo "DNS2="172.17.15.3"" >> ipconf.txt
+echo "PEERDNS=no" >> ipconf.txt
+echo "DOMAIN=towns.ontario.ops" >> ipconf.txt
+check "scp ipconf.txt 172.17.15.6:/etc/sysconfig/network-scripts/ifcfg-$intcoburg > /dev/null" "Can not copy ipconf to COBURG"
+rm -rf ipconf.txt > /dev/null
+
+# Create user
+echo -e "\e[1;35mCreate regular user\e[m"
+ssh 172.17.15.6 useradd -m $username 2> /dev/null
+ssh 172.17.15.6 '( echo '$username:$password' | chpasswd )'
+echo -e "\e[32mUser Created \e[m"
+
+# Install packages
+echo -e "\e[1;35mInstall packages\e[m"
+check "ssh 172.17.15.6 yum install -y mailx postfix dovecot" "Can not install mailx and postfix and dovecot"
+echo -e "\e[32mDone Installation \e[m"
+ssh 172.17.15.6 setenforce permissive
+check "ssh 172.17.15.6 systemctl start postfix" "Can not start services on COBURG"
+check "ssh 172.17.15.6 systemctl start dovecot" "Can not start services on COBURG"
+check "ssh 172.17.15.6 systemctl enable postfix" "Can not enable services on COBURG"
+check "ssh 172.17.15.6 systemctl enable dovecot" "Can not enable services on COBURG"
+# /Etc/postfix/main.cf
+cat > main.cf << EOF
+queue_directory = /var/spool/postfix
+command_directory = /usr/sbin
+daemon_directory = /usr/libexec/postfix
+data_directory = /var/lib/postfix
+mail_owner = postfix
+mydomain = towns.ontario.ops
+myorigin = \$mydomain
+inet_interfaces = all
+inet_protocols = all
+mydestination = \$mydomain,\$myhostname, localhost.\$mydomain, localhost
+unknown_local_recipient_reject_code = 550
+mynetworks = 172.17.15.0/24, 127.0.0.0/8
+alias_maps = hash:/etc/aliases
+alias_database = hash:/etc/aliases
+mailbox_command = /usr/libexec/dovecot/dovecot-lda -f "\$SENDER" -a "\$RECIPIENT"
+debug_peer_level = 2
+debugger_command =
+	 PATH=/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin
+	 ddd \$daemon_directory/\$process_name \$process_id & sleep 5
+sendmail_path = /usr/sbin/sendmail.postfix
+newaliases_path = /usr/bin/newaliases.postfix
+mailq_path = /usr/bin/mailq.postfix
+setgid_group = postdrop
+html_directory = no
+manpage_directory = /usr/share/man
+sample_directory = /usr/share/doc/postfix-2.10.1/samples
+readme_directory = /usr/share/doc/postfix-2.10.1/README_FILES
+
+EOF
+
+check "scp main.cf 172.17.15.6:/etc/postfix/main.cf" "Can not copy main.cf to coburg "
+rm -rf main.cf > /dev/null
+sleep 2
+
+# 10-mail.conf
+cat > 10-mail.conf << EOF
+mail_location = maildir:~/mailboxes:LAYOUT=fs
+namespace inbox {
+  inbox = yes
+}
+first_valid_uid = 1000
+mbox_write_locks = fcntl
+
+EOF
+check "scp 10-mail.conf 172.17.15.6:/etc/dovecot/conf.d/10-mail.conf" "Can not copy 10-mail.conf to coburg "
+rm -rf 10-mail.conf > /dev/null
+sleep 2
+
+# dovecot.conf
+cat > dovecot.conf << EOF
+protocols = imap
+dict {
+  #quota = mysql:/etc/dovecot/dovecot-dict-sql.conf.ext
+  #expire = sqlite:/etc/dovecot/dovecot-dict-sql.conf.ext
+}
+!include conf.d/*.conf
+!include_try local.conf
+postmaster_address = towns.ontario.ops
+
+EOF
+check "scp dovecot.conf 172.17.15.6:/etc/dovecot/dovecot.conf" "Can not copy dovecot.conf to coburg "
+rm -rf dovecot.conf > /dev/null
+sleep 2
+
+# 10-auth.conf
+cat > 10-auth.conf << EOF
+disable_plaintext_auth = no
+auth_mechanisms = plain
+!include auth-system.conf.ext
+
+EOF
+check "scp 10-auth.conf  172.17.15.6:/etc/dovecot/conf.d/10-auth.conf" "Can not copy 10-auth.conf  to coburg "
+rm -rf 10-auth.conf  > /dev/null
+sleep 2
+
+# 10-ssl.conf
+cat > 10-ssl.conf << EOF
+ssl = yes
+ssl_cert = </etc/pki/dovecot/certs/dovecot.pem
+ssl_key = </etc/pki/dovecot/private/dovecot.pem
+
+EOF
+check "scp 10-ssl.conf 172.17.15.6:/etc/dovecot/conf.d/10-ssl.conf" "Can not copy 10-ssl.conf to coburg "
+rm -rf 10-ssl.conf > /dev/null
+sleep 2
+
+# Aliases
+
+ssh 172.17.15.6 "sed -i 's/^#root.*/root = "$username"/' /etc/aliases "
+
+
+# Iptables
+echo -e "\e[1;35mAdding iptables rules\e[m"
+ssh 172.17.15.6 iptables -C INPUT -p tcp --dport 143 -s 172.17.15.0/24 -j ACCEPT 2> /dev/null || ssh 172.17.15.6 iptables -I INPUT -p tcp --dport 143 -s 172.17.15.0/24 -j ACCEPT
+ssh 172.17.15.6 iptables -C INPUT -p tcp --dport 25 -j ACCEPT 2> /dev/null || ssh 172.17.15.6 iptables -I INPUT -p tcp --dport 25 -j ACCEPT
+ssh 172.17.15.6 iptables -C INPUT -p udp --dport 25 -j ACCEPT 2> /dev/null || ssh 172.17.15.6 iptables -I INPUT -p udp --dport 25 -j ACCEPT
+ssh 172.17.15.6 iptables-save > /etc/sysconfig/iptables
+ssh 172.17.15.6 service iptables save
+ssh 172.17.15.6 systemctl restart postfix
+ssh 172.17.15.6 systemctl restart dovecot
+## --------COBURG DONE------------ ####
