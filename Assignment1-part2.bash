@@ -224,7 +224,7 @@ systemctl enable named
 sleep 3
 
 iptables-save > /etc/sysconfig/iptables
-service iptables save
+service iptables save > /dev/null 2>&1
 sleep 3
 
 
@@ -317,7 +317,7 @@ systemctl disable NetworkManager
 sleep 3
 
 iptables-save > /etc/sysconfig/iptables
-service iptables save
+service iptables save > /dev/null 2>&1
 sleep 3
 
 
@@ -371,7 +371,7 @@ systemctl disable NetworkManager
 echo "cloyne.towns.ontario.ops" > /etc/hostname
 
 iptables-save > /etc/sysconfig/iptables
-service iptables save
+service iptables save > /dev/null 2>&1
 sleep 3
 
 
