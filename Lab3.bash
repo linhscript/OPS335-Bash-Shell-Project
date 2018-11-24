@@ -166,6 +166,8 @@ ssh 192.168.$digit.${i} "echo "search $domain" > /etc/resolv.conf"
 ssh 192.168.$digit.${i} "echo "nameserver 192.168.${digit}.1" >> /etc/resolv.conf"
 done
 
+echo -e "\e[1;32m COMPLETED\e[m"
+
 
 
 
