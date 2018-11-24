@@ -118,8 +118,8 @@ then
 	cp /etc/sysconfig/network-scripts/ifcfg-ens33 /etc/sysconfig/network-scripts/ifcfg-ens33.backup
 fi
 grep -v -i -e "^DNS.*" -e "^DOMAIN.*" /etc/sysconfig/network-scripts/ifcfg-ens33 > ipconf.txt
-scp -f ipconf.txt /etc/sysconfig/network-scripts/ifcfg-ens33
-echo "DNS1=127.0.0.1" >> /etc/sysconfig/network-scripts/ifcfg-ens33
+scp ipconf.txt /etc/sysconfig/network-scripts/ifcfg-ens33
+echo "DNS1=192.168.$digit.1" >> /etc/sysconfig/network-scripts/ifcfg-ens33
 echo "DOMAIN=$username.ops" >> /etc/sysconfig/network-scripts/ifcfg-ens33
 echo host.$domain > /etc/hostname
 rm -rf ipconf.txt
@@ -159,8 +159,8 @@ echo "PEERDNS=no" >> ipconf.txt
 echo "DOMAIN=$domain" >> ipconf.txt
 check "scp ipconf.txt 192.168.$digit.${i}:/etc/sysconfig/network-scripts/ifcfg-$intvm > /dev/null" "Can not copy ipconf to VM${i}"
 rm -rf ipconf.txt > /dev/null
-ssh 192.168.$digit.1 "echo "search $domain" > /etc/resolv.conf"
-ssh 192.168.$digit.1 "echo "nameserver 192.168.${digit}.1" >> /etc/resolv.conf"
+ssh 192.168.$digit.${i} "echo "search $domain" > /etc/resolv.conf"
+ssh 192.168.$digit.${i} "echo "nameserver 192.168.${digit}.1" >> /etc/resolv.conf"
 done
 
 
