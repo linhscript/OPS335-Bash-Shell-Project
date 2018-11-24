@@ -159,6 +159,8 @@ echo "PEERDNS=no" >> ipconf.txt
 echo "DOMAIN=$domain" >> ipconf.txt
 check "scp ipconf.txt 192.168.$digit.${i}:/etc/sysconfig/network-scripts/ifcfg-$intvm > /dev/null" "Can not copy ipconf to VM${i}"
 rm -rf ipconf.txt > /dev/null
+ssh 192.168.$digit.1 "echo "search $domain" > /etc/resolv.conf"
+ssh 192.168.$digit.1 "echo "nameserver 192.168.${digit}.1" >> /etc/resolv.conf"
 done
 
 
