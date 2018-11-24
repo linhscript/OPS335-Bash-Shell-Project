@@ -136,7 +136,8 @@ rm -rf iptables.txt
 ### Remove hosts in the previous lab ###
 grep -v -i -e "vm.*" /etc/hosts > host.txt
 scp host.txt /etc/hosts
-echo "nameserver 192.168.${digit}.1" > /etc/resolv.conf
+echo "search $domain" > /etc/resolv.conf
+echo "nameserver 192.168.${digit}.1" >> /etc/resolv.conf
 
 
 systemctl restart iptables
