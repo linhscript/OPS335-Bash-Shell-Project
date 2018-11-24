@@ -121,6 +121,7 @@ grep -v -i -e "^DNS.*" -e "^DOMAIN.*" /etc/sysconfig/network-scripts/ifcfg-ens33
 scp -f ipconf.txt /etc/sysconfig/network-scripts/ifcfg-ens33
 echo "DNS1=127.0.0.1" >> /etc/sysconfig/network-scripts/ifcfg-ens33
 echo "DOMAIN=$username.ops" >> /etc/sysconfig/network-scripts/ifcfg-ens33
+echo host.$domain > /etc/hostname
 rm -rf ipconf.txt
 
 #### Adding rules in IPtables ####
