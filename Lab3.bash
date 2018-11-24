@@ -116,13 +116,15 @@ echo
 if [ ! -f /etc/sysconfig/network-scripts/ifcfg-ens33.backup ]
 then
 	cp /etc/sysconfig/network-scripts/ifcfg-ens33 /etc/sysconfig/network-scripts/ifcfg-ens33.backup
-done
-grep -v -i -e "^DNS.*" -e "^DOMAIN.*" /etc/sysconfig/network-scripts/ifcfg-ens33 > /etc/sysconfig/network-scripts/ifcfg-ens33
+fi
+grep -v -i -e "^DNS.*" -e "^DOMAIN.*" /etc/sysconfig/network-scripts/ifcfg-ens33 > ipconf.txt
+cp -f ipconf.txt /etc/sysconfig/network-scripts/ifcfg-ens33
 echo "DNS1=127.0.0.1" >> /etc/sysconfig/network-scripts/ifcfg-ens33
 echo "DOMAIN=$username.ops" >> /etc/sysconfig/network-scripts/ifcfg-ens33
 
 #### Adding rules in IPtables ####
-grep -v "dport 53" /etc/sysconfig/iptables > /etc/sysconfig/iptables
+grep -v ".*INPUT.*dport 53.*" /etc/sysconfig/iptables > iptables.txt
+cp -f iptables.txt /etc/sysconfig/iptables
 iptables -I INPUT -p tcp --dport 53 -j ACCEPT
 iptables -I INPUT -p udp --dport 53 -j ACCEPT
 iptables-save > /etc/sysconfig/iptables
@@ -130,7 +132,7 @@ service iptables save
 
 ### Remove hosts in the previous lab ###
 grep -v -i -e "vm.*" /etc/hosts > /etc/hosts
-echo 'nameserver 192.168.$digit.1' > /etc/resolv.conf
+echo 'nameserver 192.168.${digit}.1' > /etc/resolv.conf
 
 
 systemctl restart iptables
@@ -145,7 +147,7 @@ echo
 for (( i=2;i<=4;i++ ))
 do
 intvm=$( ssh 192.168.$digit.${i} '( ip ad | grep -B 2 192.168.$digit | head -1 | cut -d" " -f2 | cut -d: -f1 )' )
-ssh 192.168.$digit.${i} "echo vm${i-1}.$domain > /etc/hostname"
+ssh 192.168.$digit.${i} "echo vm$(($i-1)).$domain > /etc/hostname"
 check "ssh 192.168.$digit.${i} grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-$intvm > ipconf.txt" "File or directory not exist"
 echo "DNS1="192.168.$digit.1"" >> ipconf.txt
 echo "PEERDNS=no" >> ipconf.txt
