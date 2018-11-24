@@ -118,21 +118,24 @@ then
 	cp /etc/sysconfig/network-scripts/ifcfg-ens33 /etc/sysconfig/network-scripts/ifcfg-ens33.backup
 fi
 grep -v -i -e "^DNS.*" -e "^DOMAIN.*" /etc/sysconfig/network-scripts/ifcfg-ens33 > ipconf.txt
-cp -f ipconf.txt /etc/sysconfig/network-scripts/ifcfg-ens33
+scp -f ipconf.txt /etc/sysconfig/network-scripts/ifcfg-ens33
 echo "DNS1=127.0.0.1" >> /etc/sysconfig/network-scripts/ifcfg-ens33
 echo "DOMAIN=$username.ops" >> /etc/sysconfig/network-scripts/ifcfg-ens33
+rm -rf ipconf.txt
 
 #### Adding rules in IPtables ####
 grep -v ".*INPUT.*dport 53.*" /etc/sysconfig/iptables > iptables.txt
-cp -f iptables.txt /etc/sysconfig/iptables
+scp iptables.txt /etc/sysconfig/iptables
 iptables -I INPUT -p tcp --dport 53 -j ACCEPT
 iptables -I INPUT -p udp --dport 53 -j ACCEPT
 iptables-save > /etc/sysconfig/iptables
 service iptables save
+rm -rf iptables.txt
 
 ### Remove hosts in the previous lab ###
-grep -v -i -e "vm.*" /etc/hosts > /etc/hosts
-echo 'nameserver 192.168.${digit}.1' > /etc/resolv.conf
+grep -v -i -e "vm.*" /etc/hosts > host.txt
+scp host.txt /etc/hosts
+echo "nameserver 192.168.${digit}.1" > /etc/resolv.conf
 
 
 systemctl restart iptables
