@@ -213,9 +213,12 @@ iptables -A FORWARD -j DROP
 iptables -A OUTPUT -o lo -j ACCEPT
 iptables -A OUTPUT -j ACCEPT
 
-echo "nameserver 172.17.15.2" > /etc/resolv.conf
+echo "search towns.ontario.ops" > /etc/resolv.conf
+echo "nameserver 172.17.15.2" >> /etc/resolv.conf
 echo "toronto.towns.ontario.ops" > /etc/hostname
 
+systemctl stop NetworkManager
+systemctl disable NetworkManager
 systemctl start named
 systemctl enable named
 sleep 3
@@ -304,10 +307,13 @@ iptables -A OUTPUT -o lo -j ACCEPT
 iptables -A OUTPUT -j ACCEPT
 
 echo "ottawa.towns.ontario.ops" > /etc/hostname
-echo "nameserver 172.17.15.2" > /etc/resolv.conf
+echo "search towns.ontario.ops" > /etc/resolv.conf
+echo "nameserver 172.17.15.2" >> /etc/resolv.conf
 
 systemctl start named
 systemctl enable named
+systemctl stop NetworkManager
+systemctl disable NetworkManager
 sleep 3
 
 iptables-save > /etc/sysconfig/iptables
@@ -355,8 +361,12 @@ iptables -A FORWARD -j DROP
 iptables -A OUTPUT -o lo -j ACCEPT
 iptables -A OUTPUT -j ACCEPT
 
-echo "nameserver 172.17.15.2" > /etc/resolv.conf
+echo "search towns.ontario.ops" > /etc/resolv.conf
+echo "nameserver 172.17.15.2" >> /etc/resolv.conf
 echo "nameserver 172.17.15.3" >> /etc/resolv.conf
+
+systemctl stop NetworkManager
+systemctl disable NetworkManager
 
 echo "cloyne.towns.ontario.ops" > /etc/hostname
 
