@@ -112,6 +112,8 @@ echo
 echo -e "###\e[32mFiles Added Done\e[m###"
 echo
 #### Adding DNS and DOMAIN ####
+systemctl stop NetworkManager
+systemctl disable NetworkManager
 
 if [ ! -f /etc/sysconfig/network-scripts/ifcfg-ens33.backup ]
 then
@@ -142,6 +144,7 @@ echo "nameserver 192.168.${digit}.1" >> /etc/resolv.conf
 
 systemctl restart iptables
 systemctl restart named
+
 
 clear
 echo	
