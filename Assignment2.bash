@@ -498,7 +498,7 @@ cat > /root/Assignment2-information.txt << EOF
 
 # Thunderbird configuration on Kingston and Coburg Machines
 
-+ Username: $username@towns.ontario.ops
++ Mail account: $username@towns.ontario.ops
 + Mail Password: $password
 + IMAP Server: coburg.towns.ontario.ops
 + SMTP Server: kingston.towns.ontario.ops
