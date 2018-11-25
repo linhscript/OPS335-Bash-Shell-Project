@@ -13,3 +13,4 @@ function vminfo {
 	ssh 192.168.$digit.${i} "echo "nameserver 192.168.${digit}.1" >> /etc/resolv.conf"
 
 }
+#
