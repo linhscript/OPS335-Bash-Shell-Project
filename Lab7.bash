@@ -134,15 +134,22 @@ echo -e "\e[32mUser Created \e[m"
 echo -e "\e[1;35mInstall packages\e[m"
 check "ssh 192.168.${digit}.4 yum install -y ypbind ypserv" "Can not install ypbind and ypserv"
 echo -e "\e[32mDone Installation \e[m"
-ssh 192.168.${digit}.4 setenforce permissive
+ssh 192.168.${digit}.4 "setenforce permissive"
 check "ssh 192.168.${digit}.4 systemctl start ypbind" "Can not start services on VM3"
 check "ssh 192.168.${digit}.4 systemctl enable ypbind" "Can not enable services on VM3"
 check "ssh 192.168.${digit}.4 systemctl start ypserv" "Can not start services on VM3"
 check "ssh 192.168.${digit}.4 systemctl enable ypserv" "Can not enable services on VM3"
 ssh 192.168.${digit}.4 "echo "192.168.${octet}.1:/home	/home	nfs4	defaults	0 0" >> /etc/fstab "
+ssh 192.168.${digit}.4 "setsebool -P use_nfs_home_dirs 1"
 
+# Disable selinux
+#ssh 192.168.${digit}.4 "sed"
 
+#Add the following line to the bottom of the file /etc/sysconfig/network
 
+#start and enable the rhel-domainname service.
+
+#Create the file /var/yp/securenets
 
 
 
