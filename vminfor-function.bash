@@ -5,6 +5,7 @@ function vminfo {
 	if [ "$#" -lt 3 ] || [ "$#" -ge 5 ]
 	then
 		echo -e "\e[31mMissing or Unneeded arguments\e[m"
+		echo "USAGE: $0 IP HOSTNAME(FQDN) DNS1 DNS2(optional)" >&2
 		exit 2
 	else
 		intvm=$( ssh $1 '( ip ad | grep -B 2 192.168.$digit | head -1 | cut -d" " -f2 | cut -d: -f1 )' )
