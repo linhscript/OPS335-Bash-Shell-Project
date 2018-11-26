@@ -298,6 +298,10 @@ sleep 2
 
 ssh 192.168.$digit.4 "sed -i 's/^#root.*/root = "$username"/' /etc/aliases "
 
+# MX Record
+sed -i 's/.*MX.*/${username}.ops. IN MX 10 vm3.${username}.ops./' /var/named/mydb-for-$username-ops
+
+
 
 # Iptables
 echo -e "\e[1;35mAdding iptables rules\e[m"

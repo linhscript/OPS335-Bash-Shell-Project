@@ -2,6 +2,7 @@ function vminfo {
 
 ## Config DOMAIN, HOSTNAME, RESOLV File, Disable Network Manager
 	if [ -z "$2" ]
+	then
 	intvm=$( ssh 192.168.$digit. '( ip ad | grep -B 2 192.168.$digit | head -1 | cut -d" " -f2 | cut -d: -f1 )' )
 	ssh 192.168.$digit.${i} "echo vm$(($i-1)).$domain > /etc/hostname"
 	check "ssh 192.168.$digit.${i} grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-$intvm > ipconf.txt" "File or directory not exist"
@@ -12,6 +13,8 @@ function vminfo {
 	rm -rf ipconf.txt > /dev/null
 	ssh 192.168.$digit.${i} "echo "search $domain" > /etc/resolv.conf"
 	ssh 192.168.$digit.${i} "echo "nameserver 192.168.${digit}.1" >> /etc/resolv.conf"
-
+	ssh 192.168.$digit.${i} "systemctl stop NetworkManager"
+	ssh 192.168.$digit.${i} "systemctl disable NetworkManager"
+	fi
 }
 #
