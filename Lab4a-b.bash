@@ -244,7 +244,7 @@ sleep 2
 
 # 10-mail.conf
 cat > 10-mail.conf << EOF
-mail_location = maildir:~/mailboxes:LAYOUT=fs
+mail_location = maildir:~/Maildir
 namespace inbox {
   inbox = yes
 }
