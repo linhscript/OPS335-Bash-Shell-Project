@@ -88,6 +88,11 @@ function require {
                 count=1
             fi
         done
+        if ! virsh list --all | grep cloyne
+        then
+            echo -e "\e[1;31mYou do not have cloyne machine. Create cloyne machine\e[m"
+            exit 2
+        fi
         #----------------------------------------# Setup cloyne to be cloneable
         if [ $count -gt 0 ]
         then
@@ -223,31 +228,6 @@ function vminfo {
 ##### Check Function
 list_vms="toronto ottawa cloyne"
 vms="172.17.15.2 172.17.15.3 172.17.15.100"
-function check() {
-	if eval $1
-	then
-		echo -e "\e[32mOKAY_Babe. Good job \e[0m"
-	else
-		echo
-     		echo
-     		echo -e "\e[0;31mWARNING\e[m"
-     		echo
-     		echo
-     		echo $2
-     		echo
-     		exit 1
-	fi	
-}
-
-echo -e "\e[1;31m--------WARNING----------"
-echo -e "\e[1mBackup your virtual machine to run this script \e[0m"
-echo
-read -p "Did you make a backup ? [Y/N]: " choice
-while [[ "$choice" != "Y" && "$choice" != "Yes" && "$choice" != "y" && "$choice" != "yes" ]]
-do
-	echo -e "\e[33mGo make a backup \e[0m" >&2
-	exit 6
-done
 
 ########## INPUT from USER #######
 read -p "What is your IP Adress of VM1: " IP
