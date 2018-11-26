@@ -25,4 +25,3 @@ function vminfo {
 		rm -rf ipconf.txt > /dev/null
 	fi
 }
-#
