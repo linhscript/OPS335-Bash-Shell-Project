@@ -2,7 +2,7 @@ function vminfo {
 
 ## Config DOMAIN, HOSTNAME, RESOLV File, Disable Network Manager
 ## Need some arguments such as: IP HOSTNAME DNS1 DNS2 
-	if [ "$#" -lt 3 || "$#" -ge 5 ]
+	if [ "$#" -lt 3 ] || [ "$#" -ge 5 ]
 	then
 		echo -e "\e[31mMissing or Unneeded arguments\e[m"
 		exit 2
