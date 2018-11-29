@@ -110,7 +110,7 @@ function require {
 			echo "DNS2="172.17.15.3"" >> ipconf.txt
 			echo "PEERDNS=no" >> ipconf.txt
 			echo "DOMAIN=towns.ontario.ops" >> ipconf.txt
-			sed -i 's/${maccloyne}/#${maccloyne}/g' ipconf.txt  #ssh to cloyne and comment mac address
+			sed -i 's/'${maccloyne}'/#'${maccloyne}'/g' ipconf.txt 2> /dev/null  #comment mac address in ipconf.txt file
 			check "scp ipconf.txt 172.17.15.100:/etc/sysconfig/network-scripts/ifcfg-$intcloyne > /dev/null" "Can not copy ipconf to Cloyne"
 			rm -rf ipconf.txt > /dev/null
 			sleep 2
