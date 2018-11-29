@@ -115,7 +115,7 @@ function require {
 			rm -rf ipconf.txt > /dev/null
 			sleep 2
 			echo -e "\e[32mCloyne machine info has been collected\e[m"
-			virsh destroy cloyne			
+			virsh suspend cloyne			
 		
 			#---------------------------# Start cloning
 			for clonevm in ${!dict[@]} # Key (name vm)
