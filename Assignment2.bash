@@ -134,7 +134,7 @@ function require {
 				#------ get new mac address
 				newmac=$(virsh dumpxml $clonevm | grep "mac address" | cut -d\' -f2)
 				#-----Replace mac and ip, hostname
-				ssh 172.17.15.100 "sed -i 's/.*HW.*/HWADDR\=${newmac}/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne" ## change mac
+				ssh 172.17.15.100 "sed -i 's/.*HW.*/HWADDR\='${newmac}'/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne" ## change mac
 				ssh 172.17.15.100 "echo $clonevm.towns.ontario.ops > /etc/hostname "  #change host name
 				ssh 172.17.15.100 "sed -i 's/'172.17.15.100'/'${dict[$clonevm]}'/' /etc/sysconfig/network-scripts/ifcfg-$intcloyne" #change ip
 				echo
@@ -151,7 +151,7 @@ function require {
 					sleep 3
 				done
 				sleep 5
-				ssh 172.17.15.100 "sed -i 's/.*HW.*/${oldmac}/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne"
+				ssh 172.17.15.100 "sed -i 's/.*HW.*/'${oldmac}'/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne"
 				ssh 172.17.15.100 init 6
 		fi
 	}		
@@ -383,7 +383,7 @@ sleep 2
 
 # Aliases
 
-ssh 172.17.15.6 "sed -i 's/^#root.*/root = "$username"/' /etc/aliases "
+ssh 172.17.15.6 "sed -i 's/^#root.*/root = '$username'/' /etc/aliases "
 
 
 # Iptables
