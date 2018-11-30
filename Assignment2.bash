@@ -508,6 +508,7 @@ cat > /root/Assignment2-information.txt << EOF
 
 + Users for Samba: $username-1 $username-2 $username-admin
 + Password to login: $password
++ Path: 172.17.15.10/documents
 
 ## All the above information will be stored in  /root/Assignment2-information.txt ##
 ------------------------------------------------------------
