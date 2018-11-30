@@ -499,10 +499,10 @@ cat > /root/Assignment2-information.txt << EOF
 
 # Thunderbird configuration on Kingston and Coburg Machines
 
-+ Mail account: $username@towns.ontario.ops
++ Mail account: $username@towns.ontario.ops 
 + Mail Password: $password
-+ IMAP Server: coburg.towns.ontario.ops
-+ SMTP Server: kingston.towns.ontario.ops
++ Incoming IMAP Server: coburg.towns.ontario.ops    | Port: 143   | SSL: None | Normal Password 
++ Outgoing SMTP Server: kingston.towns.ontario.ops  | Port: 25    | SSL: None | No authentication 
 
 #Samba Configuration on MILTON machine
 
