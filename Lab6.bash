@@ -14,10 +14,7 @@ function require {
 	     		exit 1
 		fi	
 	}
-		### ALL INPUT BEFORE CHECKING #### -------------------
-		domain="towns.ontario.ops"
-		vms_name=(toronto ottawa kingston coburg milton)   ###-- Put the name in order --  Master Slave Other Machines
-		vms_ip=(172.17.15.2 172.17.15.3 172.17.15.5 172.17.15.6 172.17.15.8)	
+	
 		
 		### INPUT from USER ###
 		clear
@@ -26,6 +23,11 @@ function require {
 		read -s -p "Type your normal password: " password && echo
 		IP=$(cat /var/named/mydb-for-* | grep ^vm1 | head -1 | awk '{print $4}')
 		digit=$(cat /var/named/mydb-for-* | grep ^vm2 | head -1 | awk '{print $4}' | cut -d. -f3)
+
+		### ALL INPUT BEFORE CHECKING #### -------------------
+		domain="$username.ops"
+		vms_name=(vm1 vm2 vm3)   
+		vms_ip=(192.168.$digit.2 192.168.$digit.3 192.168.$digit.4)
 		
 		#### Create Hash Table -------------------------------
 		
@@ -108,3 +110,29 @@ function require {
 	
 }
 require
+
+## Start configuration
+## VM1 CONFIGURATION ######
+
+# Installing Package
+echo 
+echo "############ Installing APACHE Server ###########"
+echo 
+check "ssh ${dict[vm1]} yum install httpd mariadb-server mariadb php php-mysql php-fpm php* -y --skip-broken" "Can not use Yum to install"
+ssh ${dict[vm1]} systemctl start httpd
+ssh ${dict[vm1]} systemctl enable httpd
+ssh ${dict[vm1]} systemctl start mariadb
+ssh ${dict[vm1]} systemctl enable mariadb
+echo -e "\e[32mInstalling Done\e[m"
+
+# Config Apache
+ssh ${dict[vm1]} "echo "Hello, this is a web page on vm1.youruserid.ops and the current time is Mar 28 22:16:27 EDT 2016!" > /var/www/html/index.html"
+if ! grep "Directory.*/html/private" /etc/httpd/conf/httpd.conf
+then
+cat >> /etc/httpd/conf/httpd.conf <<EOF
+<Directory "/var/www/html/private">
+  AllowOverride None
+  Require ip 192.168.${digit}.0/24
+</Directory>
+EOF
+fi
