@@ -9,14 +9,15 @@ function require {
 	     		echo -e "\e[0;31mWARNING\e[m"
 	     		echo
 	     		echo
-	     		echo $2
+	     		zenity --error --title="An Error Occurred" --text=$2
 	     		echo
 	     		exit 1
 		fi	
 	}
 		### ALL INPUT BEFORE CHECKING #### -------------------
-		
-
+		domain="towns.ontario.ops"
+		vms_name=(toronto ottawa kingston coburg milton)   ###-- Put the name in order --  Master Slave Other Machines
+		vms_ip=(172.17.15.2 172.17.15.3 172.17.15.5 172.17.15.6 172.17.15.8)	
 		
 		### INPUT from USER ###
 		clear
@@ -25,9 +26,6 @@ function require {
 		read -s -p "Type your normal password: " password && echo
 		IP=$(cat /var/named/mydb-for-* | grep ^vm1 | head -1 | awk '{print $4}')
 		digit=$(cat /var/named/mydb-for-* | grep ^vm2 | head -1 | awk '{print $4}' | cut -d. -f3)
-		domain=$username.ops
-		vms_name=(vm1 vm2 vm3)   
-		vms_ip=(192.168.$digit.2 192.168.$digit.3 192.168.$digit.4)	
 		
 		#### Create Hash Table -------------------------------
 		
@@ -73,6 +71,7 @@ function require {
 			done
 		fi
 
+		### 3.Checking VMs need to be clone and status ----------------------------------
 
 	########################################
 	echo -e "\e[1;35mChecking VMs status\e[m"
@@ -98,7 +97,7 @@ function require {
 		
 	for ssh_vm in ${!dict[@]} ## -- Checking VMS -- ## KEY
 	do
-	check "ssh -o ConnectTimeout=5 ${dict[$ssh_vm]} ls > /dev/null" "Can not SSH to $ssh_vm, check and run the script again "
+	check "ssh -o ConnectTimeout=5 -oStrictHostKeyChecking=no ${dict[$ssh_vm]} ls > /dev/null" "Can not SSH to $ssh_vm, check and run the script again "
 	check "ssh ${dict[$ssh_vm]} ping -c 3 google.ca > /dev/null" "Can not ping GOOGLE.CA from $ssh_vm, check internet connection then run the script again"
 	check "ssh ${dict[$ssh_vm]} yum update -y" "Can not YUM UPDATE from $ssh_vm"
 	done
@@ -109,6 +108,3 @@ function require {
 	
 }
 require
-
-
-## NOT DONE - BECAREFUL TO RUN 1
