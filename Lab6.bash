@@ -150,16 +150,36 @@ EOF
 check "scp index.php ${dict[vm1]}:/var/www/html/private/" "Cannot copy index.php to VM1"
 rm -rf index.php
 
+cat > roundcube.bash << EOF
+
+#!/bin/bash
 # Config roundcube
-if [ ssh ${dict[vm1]} test -d /var/www/html/webmail ]
+if test -d /var/www/html/webmail
 then 
-	ssh ${dict[vm1]} rm -rf /var/www/html/webmail
-	ssh ${dict[vm1]} "wget -P /var/www/html/webmail/ https://github.com/roundcube/roundcubemail/releases/download/1.3.8/roundcubemail-1.3.8-complete.tar.gz "
-	ssh ${dict[vm1]} "tar xvzf -C /var/www/html/webmail/ roundcubemail-1.3.8-complete.tar.gz --no-same-owner --strip-components 1"
-	ssh ${dict[vm1]} "semanage fcontext -a -t httpd_log_t '/var/www/html/webmail/temp(/.*)?'"
-	ssh ${dict[vm1]} "semanage fcontext -a -t httpd_log_t '/var/www/html/webmail/logs(/.*)?'"
-	ssh ${dict[vm1]} "restorecon -v -R /var/www/html/webmail"
-	ssh ${dict[vm1]} "setsebool -P httpd_can_network_connect 1"
+	rm -rf /var/www/html/webmail
 fi
+wget -P /var/www/html/webmail/ https://github.com/roundcube/roundcubemail/releases/download/1.3.8/roundcubemail-1.3.8-complete.tar.gz 
+tar xvzf -C /var/www/html/webmail/ roundcubemail-1.3.8-complete.tar.gz --no-same-owner --strip-components 1
+semanage fcontext -a -t httpd_log_t '/var/www/html/webmail/temp(/.*)?'
+semanage fcontext -a -t httpd_log_t '/var/www/html/webmail/logs(/.*)?'
+restorecon -v -R /var/www/html/webmail
+setsebool -P httpd_can_network_connect 1
+chown -R apache:apache /var/www/html/webmail/temp
+chown -R apache:apache /var/www/html/webmail/logs
 
 
+# Config database roundcube
+mysql --user=root 
+UPDATE mysql.user SET Password=PASSWORD('${password}') WHERE User='root';
+DELETE FROM mysql.user WHERE User='';
+DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
+DROP DATABASE IF EXISTS test;
+DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
+FLUSH PRIVILEGES;
+EOF
+
+# Remove script after running
+scp roundcube.bash ${dict[vm1]}
+rm -rf roundcube.bash
+ssh ${dict[vm1]} "bash roundcube.bash"
+ssh ${dict[vm1]} "rm -rf roundcube.bash"
