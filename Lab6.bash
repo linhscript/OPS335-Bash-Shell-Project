@@ -1,3 +1,28 @@
+#!/bin/bash
+
+#############################################################################################################
+### INPUT from USER ###
+clear
+read -p "What is your Seneca username: " username
+read -p "What is your FULL NAME: " fullname
+read -s -p "Type your normal password: " password && echo
+IP=$(cat /var/named/mydb-for-* | grep ^vm1 | head -1 | awk '{print $4}')
+digit=$(cat /var/named/mydb-for-* | grep ^vm2 | head -1 | awk '{print $4}' | cut -d. -f3)
+
+### ALL INPUT BEFORE CHECKING #### -------------------
+domain="$username.ops"
+vms_name=(vm1 vm2 vm3)   
+vms_ip=(192.168.$digit.2 192.168.$digit.3 192.168.$digit.4)
+		
+#### Create Hash Table -------------------------------
+		
+for (( i=0; i<${#vms_name[@]};i++ ))
+do
+declare -A dict
+	dict+=(["${vms_name[$i]}"]="${vms_ip[$i]}")
+done
+###############################################################################################################
+
 function require {
 	function check() {
 		if eval $1
@@ -16,29 +41,6 @@ function require {
 		fi	
 	}
 	
-		
-		### INPUT from USER ###
-		clear
-		read -p "What is your Seneca username: " username
-		read -p "What is your FULL NAME: " fullname
-		read -s -p "Type your normal password: " password && echo
-		IP=$(cat /var/named/mydb-for-* | grep ^vm1 | head -1 | awk '{print $4}')
-		digit=$(cat /var/named/mydb-for-* | grep ^vm2 | head -1 | awk '{print $4}' | cut -d. -f3)
-
-		### ALL INPUT BEFORE CHECKING #### -------------------
-		domain="$username.ops"
-		vms_name=(vm1 vm2 vm3)   
-		vms_ip=(192.168.$digit.2 192.168.$digit.3 192.168.$digit.4)
-		
-		#### Create Hash Table -------------------------------
-		
-		for (( i=0; i<${#vms_name[@]};i++ ))
-		do
-			declare -A dict
-			dict+=(["${vms_name[$i]}"]="${vms_ip[$i]}")
-		done
-		
-		
 		### 1.Run script by Root ---------------------------------------------
 
 		if [ `id -u` -ne 0 ]
