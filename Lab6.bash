@@ -151,6 +151,15 @@ check "scp index.php ${dict[vm1]}:/var/www/html/private/" "Cannot copy index.php
 rm -rf index.php
 
 # Config roundcube
-if [ ssh vm1 test -d /var/www/html/webmail ]
-ssh ${dict[vm1]} "wget -P /var/www/html/webmail/ https://github.com/roundcube/roundcubemail/releases/download/1.3.8/roundcubemail-1.3.8-complete.tar.gz
+if [ ssh ${dict[vm1]} test -d /var/www/html/webmail ]
+then 
+	ssh ${dict[vm1]} rm -rf /var/www/html/webmail
+	ssh ${dict[vm1]} "wget -P /var/www/html/webmail/ https://github.com/roundcube/roundcubemail/releases/download/1.3.8/roundcubemail-1.3.8-complete.tar.gz "
+	ssh ${dict[vm1]} "tar xvzf -C /var/www/html/webmail/ roundcubemail-1.3.8-complete.tar.gz --no-same-owner --strip-components 1"
+	ssh ${dict[vm1]} "semanage fcontext -a -t httpd_log_t '/var/www/html/webmail/temp(/.*)?'"
+	ssh ${dict[vm1]} "semanage fcontext -a -t httpd_log_t '/var/www/html/webmail/logs(/.*)?'"
+	ssh ${dict[vm1]} "restorecon -v -R /var/www/html/webmail"
+	ssh ${dict[vm1]} "setsebool -P httpd_can_network_connect 1"
+fi
+
 
