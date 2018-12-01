@@ -12,7 +12,7 @@ function require {
 	     		echo -e "\e[0;31mWARNING\e[m"
 	     		echo
 	     		echo
-	     		echo $2
+	     		zenity --error --title="An Error Occurred" --text=$2
 	     		echo
 	     		exit 1
 		fi	
