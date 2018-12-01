@@ -144,7 +144,7 @@ function require {
 			done
 				#------------------# reset cloyne machine
 				oldmac=$(virsh dumpxml cloyne | grep "mac address" | cut -d\' -f2)
-				virsh reume cloyne > /dev/null 2>&1
+				virsh resume cloyne > /dev/null 2>&1
 				while ! eval "ping 172.17.15.100 -c 5 > /dev/null" 
 				do
 					echo "Cloyne machine is starting"
