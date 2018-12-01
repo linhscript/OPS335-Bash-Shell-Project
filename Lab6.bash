@@ -10,6 +10,7 @@ function require {
 	     		echo
 	     		echo
 	     		zenity --error --title="An Error Occurred" --text=$2
+	     		echo $2
 	     		echo
 	     		exit 1
 		fi	
@@ -96,7 +97,8 @@ function require {
 	echo -e "\e[32mRestarted Done \e[m"
 
 	check "ping -c 3 google.ca > /dev/null" "Host machine can not ping GOOGLE.CA, check INTERNET connection then run the script again"
-		
+	
+	echo "Checking SSH,PING,YUM"	
 	for ssh_vm in ${!dict[@]} ## -- Checking VMS -- ## KEY
 	do
 	check "ssh -o ConnectTimeout=5 -oStrictHostKeyChecking=no ${dict[$ssh_vm]} ls > /dev/null" "Can not SSH to $ssh_vm, check and run the script again "
@@ -169,13 +171,16 @@ chown -R apache:apache /var/www/html/webmail/logs
 
 
 # Config database roundcube
-mysql --user=root 
-UPDATE mysql.user SET Password=PASSWORD('${password}') WHERE User='root';
-DELETE FROM mysql.user WHERE User='';
-DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
-DROP DATABASE IF EXISTS test;
-DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
+mysql -u root -p$password -e 'DROP USER 'roundcube'@'localhost';' 2> /dev/null 
+mysql -uroot -pH@v@nl1nh << sqlconf
+CREATE USER roundcube@localhost identified by '\$password';
+CREATE DATABASE IF NOT EXISTS roundcubemail;
+GRANT ALL PRIVILEGES ON roundcubemail.* TO roundcube@localhost IDENTIFIED BY '\$password';
 FLUSH PRIVILEGES;
+sqlconf
+
+
+
 EOF
 
 # Remove script after running
@@ -183,3 +188,23 @@ scp roundcube.bash ${dict[vm1]}
 rm -rf roundcube.bash
 ssh ${dict[vm1]} "bash roundcube.bash"
 ssh ${dict[vm1]} "rm -rf roundcube.bash"
+
+# File config roundcube 
+cat > config.inc.php << EOF
+<?php
+$config['db_dsnw'] = 'mysql://roundcube:$password@localhost/roundcubemail';
+$config['default_host'] = 'vm3.$domain';
+$config['smtp_server'] = 'vm2.$domain';
+$config['support_url'] = '';
+$config['des_key'] = 'LOMmLxXmsYp9XB7m00PA6RXf';
+$config['plugins'] = array();
+
+EOF
+scp config.inc.php ${dict[vm1]}:/var/www/html/webmail/config/
+rm -rf config.inc.php
+
+
+# Config IPTABLES on VM1
+ssh ${dict[vm1]} iptables -C INPUT -p tcp --dport 80 -j ACCEPT 2> /dev/null || ssh ${dict[vm1]} iptables -I INPUT -p tcp --dport 80 -j ACCEPT
+ssh ${dict[vm1]} iptables-save > /etc/sysconfig/iptables
+ssh ${dict[vm1]} service iptables save
