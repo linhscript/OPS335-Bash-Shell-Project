@@ -136,3 +136,6 @@ cat >> /etc/httpd/conf/httpd.conf <<EOF
 </Directory>
 EOF
 fi
+
+mkdir -p /var/www/html/private 2> /dev/null
+Hello, this is a web page on vm1.youruserid.ops and the current time is <?php system("date"); ?>!

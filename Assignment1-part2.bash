@@ -634,17 +634,17 @@ do
 
 done
 ####Reset iptables on C7Host
-echo "Iptables is restarting"
-systemctl restart libvirtd
-iptables-save > /etc/sysconfig/iptables
-service iptables save
+#echo "Iptables is restarting"
+#systemctl restart libvirtd
+#iptables-save > /etc/sysconfig/iptables
+#service iptables save
 sleep 3
 echo "####################################"
 echo -e "\e[32mAll processes are done. Good luck \e[0m"
-echo "####################################"
-echo "System is going to reboot in a few seconds"
-sleep 10
-init 6
+#echo "####################################"
+#echo "System is going to reboot in a few seconds"
+#sleep 10
+#init 6
 
 
 
