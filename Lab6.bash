@@ -118,11 +118,9 @@ require
 echo 
 echo "############ Installing APACHE Server ###########"
 echo 
-check "ssh ${dict[vm1]} yum install httpd mariadb-server mariadb php php-mysql php-fpm php* -y --skip-broken" "Can not use Yum to install"
-ssh ${dict[vm1]} systemctl start httpd
-ssh ${dict[vm1]} systemctl enable httpd
-ssh ${dict[vm1]} systemctl start mariadb
-ssh ${dict[vm1]} systemctl enable mariadb
+check "ssh ${dict[vm1]} yum install httpd mariadb-server mariadb policycoreutils-python wget php php-mysql php-fpm php* -y --skip-broken" "Can not use Yum to install"
+ssh ${dict[vm1]} "systemctl start httpd && systemctl enable httpd"
+ssh ${dict[vm1]} "systemctl start mariadb && systemctl enable mariadb"
 echo -e "\e[32mInstalling Done\e[m"
 
 # Config Apache
@@ -137,5 +135,22 @@ cat >> /etc/httpd/conf/httpd.conf <<EOF
 EOF
 fi
 
-mkdir -p /var/www/html/private 2> /dev/null
-Hello, this is a web page on vm1.youruserid.ops and the current time is <?php system("date"); ?>!
+ssh ${dict[vm1]} mkdir -p /var/www/html/private 2> /dev/null
+ssh ${dict[vm1]} "echo "Hello, this is a web page on vm1.youruserid.ops and the current time is <?php system("date"); ?>!" > /var/www/html/index.html"
+
+cat > index.php << EOF
+<?php
+\$mysqli = new mysqli("localhost", "<$username>", "<$password>");
+if (\$mysqli->connect_errno) {
+    echo "Failed to connect to MySQL: (" . \$mysqli->connect_errno . ") " . \$mysqli->connect_error;
+}
+echo \$mysqli->host_info . "\n";
+?>
+EOF
+check "scp index.php ${dict[vm1]}:/var/www/html/private/" "Cannot copy index.php to VM1"
+rm -rf index.php
+
+# Config roundcube
+if [ ssh vm1 test -d /var/www/html/webmail ]
+ssh ${dict[vm1]} "wget -P /var/www/html/webmail/ https://github.com/roundcube/roundcubemail/releases/download/1.3.8/roundcubemail-1.3.8-complete.tar.gz
+
