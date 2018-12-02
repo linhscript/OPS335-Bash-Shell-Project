@@ -176,7 +176,8 @@ then
 	rm -rf /var/www/html/webmail
 fi
 wget -P /var/www/html/webmail/ https://github.com/roundcube/roundcubemail/releases/download/1.3.8/roundcubemail-1.3.8-complete.tar.gz 
-tar xvzf -C /var/www/html/webmail/ roundcubemail-1.3.8-complete.tar.gz --no-same-owner --strip-components 1
+cd /var/www/html/webmail
+tar xvzf roundcubemail-1.3.8-complete.tar.gz --no-same-owner --strip-components 1
 semanage fcontext -a -t httpd_log_t '/var/www/html/webmail/temp(/.*)?'
 semanage fcontext -a -t httpd_log_t '/var/www/html/webmail/logs(/.*)?'
 restorecon -v -R /var/www/html/webmail
