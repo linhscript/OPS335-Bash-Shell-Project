@@ -128,20 +128,30 @@ ssh ${dict[vm1]} "systemctl start mariadb && systemctl enable mariadb"
 echo -e "\e[32mInstalling Done\e[m"
 
 # Config Apache
-ssh ${dict[vm1]} "echo "Hello, this is a web page on vm1.youruserid.ops and the current time is Mar 28 22:16:27 EDT 2016!" > /var/www/html/index.html"
+cat > apache.bash << EOF
+echo "Hello, this is a web page on vm1.youruserid.ops and the current time is Mar 28 22:16:27 EDT 2016!" > /var/www/html/index.html
+
+#apache config 
 if ! grep "Directory.*/html/private" /etc/httpd/conf/httpd.conf
 then
-cat >> /etc/httpd/conf/httpd.conf <<EOF
+cat >> /etc/httpd/conf/httpd.conf << apacheconf
 <Directory "/var/www/html/private">
   AllowOverride None
   Require ip 192.168.${digit}.0/24
 </Directory>
-EOF
+apacheconf
 fi
 
-ssh ${dict[vm1]} mkdir -p /var/www/html/private 2> /dev/null
-ssh ${dict[vm1]} "echo "Hello, this is a web page on vm1.youruserid.ops and the current time is <?php system("date"); ?>!" > /var/www/html/index.html"
+mkdir -p /var/www/html/private 2> /dev/null
+echo "Hello, this is a web page on vm1.youruserid.ops and the current time is <?php system("date"); ?>!" > /var/www/html/index.html
+EOF
 
+# Remove script after running
+scp apache.bash ${dict[vm1]}
+rm -rf apache.bash
+ssh ${dict[vm1]} "bash apache.bash"
+ssh ${dict[vm1]} "rm -rf apache.bash"
+# Add file test
 cat > index.php << EOF
 <?php
 \$mysqli = new mysqli("localhost", "<$username>", "<$password>");
@@ -153,6 +163,8 @@ echo \$mysqli->host_info . "\n";
 EOF
 check "scp index.php ${dict[vm1]}:/var/www/html/private/" "Cannot copy index.php to VM1"
 rm -rf index.php
+
+## Config ROUNDCUBE
 
 cat > roundcube.bash << EOF
 
@@ -173,15 +185,13 @@ chown -R apache:apache /var/www/html/webmail/logs
 
 
 # Config database roundcube
-mysql -u root -p$password -e 'DROP USER 'roundcube'@'localhost';' 2> /dev/null 
-mysql -uroot -pH@v@nl1nh << sqlconf
+mysql -u root -e 'DROP USER 'roundcube'@'localhost';' 2> /dev/null 
+mysql -uroot << sqlconf
 CREATE USER roundcube@localhost identified by '\$password';
 CREATE DATABASE IF NOT EXISTS roundcubemail;
 GRANT ALL PRIVILEGES ON roundcubemail.* TO roundcube@localhost IDENTIFIED BY '\$password';
 FLUSH PRIVILEGES;
 sqlconf
-
-
 
 EOF
 
