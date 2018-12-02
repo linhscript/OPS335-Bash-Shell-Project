@@ -1,23 +1,6 @@
 #!/bin/bash
 
-############### CHECKING ALL THE REQUIREMENT BEFORE RUNNING THE SCRIPT ############################
-function require {
-	function check() {
-		if eval $1
-		then
-			echo -e "\e[32mOK. GOOD \e[0m"
-		else
-			echo
-	     		echo
-	     		echo -e "\e[0;31mWARNING\e[m"
-	     		echo
-	     		echo
-	     		zenity --error --title="An Error Occurred" --text=$2
-	     		echo
-	     		exit 1
-		fi	
-	}
-		### ALL INPUT BEFORE CHECKING #### -------------------
+### ALL INPUT BEFORE CHECKING #### -------------------
 		domain="towns.ontario.ops"
 		vms_name=(toronto ottawa kingston coburg milton)   ###-- Put the name in order --  Master Slave Other Machines
 		vms_ip=(172.17.15.2 172.17.15.3 172.17.15.5 172.17.15.6 172.17.15.8)	
@@ -37,7 +20,23 @@ function require {
 			declare -A dict
 			dict+=(["${vms_name[$i]}"]="${vms_ip[$i]}")
 		done
-		
+############### CHECKING ALL THE REQUIREMENT BEFORE RUNNING THE SCRIPT ############################
+function require {
+	function check() {
+		if eval $1
+		then
+			echo -e "\e[32mOK. GOOD \e[0m"
+		else
+			echo
+	     		echo
+	     		echo -e "\e[0;31mWARNING\e[m"
+	     		echo
+	     		echo
+	     		zenity --error --title="An Error Occurred" --text=$2
+	     		echo
+	     		exit 1
+		fi	
+	}
 		
 		### 1.Run script by Root ---------------------------------------------
 

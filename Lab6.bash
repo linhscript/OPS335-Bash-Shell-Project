@@ -147,7 +147,7 @@ echo "Hello, this is a web page on vm1.youruserid.ops and the current time is <?
 EOF
 
 # Remove script after running
-scp apache.bash ${dict[vm1]}
+scp apache.bash ${dict[vm1]}:/root
 rm -rf apache.bash
 ssh ${dict[vm1]} "bash apache.bash"
 ssh ${dict[vm1]} "rm -rf apache.bash"
@@ -185,6 +185,12 @@ chown -R apache:apache /var/www/html/webmail/logs
 
 
 # Config database roundcube
+# Check if mysql has password or not
+if ! mysql -u root -e "" 2> /dev/null
+then
+	mysqladmin -u root -p$password password ''
+fi
+# Check if user "roundcube" was created or not 
 mysql -u root -e 'DROP USER 'roundcube'@'localhost';' 2> /dev/null 
 mysql -uroot << sqlconf
 CREATE USER roundcube@localhost identified by '\$password';
@@ -196,7 +202,7 @@ sqlconf
 EOF
 
 # Remove script after running
-scp roundcube.bash ${dict[vm1]}
+scp roundcube.bash ${dict[vm1]}:/root
 rm -rf roundcube.bash
 ssh ${dict[vm1]} "bash roundcube.bash"
 ssh ${dict[vm1]} "rm -rf roundcube.bash"
