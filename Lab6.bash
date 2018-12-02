@@ -55,7 +55,7 @@ function require {
 		echo -e "\e[1mBackup your virtual machine to run this script \e[0m"
 		echo
 		zenity --question --title="BACKUP VIRTUAL MACHINES" --text="DO YOU WANT TO MAKE A BACKUP"
-		if [ $? = 0 ]
+		if [ $? -eq 0 ]
 		then
 			echo -e "\e[1;35mBacking up in process. Wait... \e[0m" >&2
 			for shut in $(virsh list --name)  ## --- shutdown vms to backup --- ###
@@ -111,7 +111,7 @@ function require {
 	
 	### 5.Checking jobs done from Assignment 1 -------------------------
 
-	check "ssh ${vms_ip[0]} host ${vms_name[0]}.$domain > /dev/null 2>&1" "Name service in ${vms_name[0]} is not working"
+	#check "ssh ${vms_ip[0]} host ${vms_name[0]}.$domain > /dev/null 2>&1" "Name service in ${vms_name[0]} is not working"
 	
 }
 require
