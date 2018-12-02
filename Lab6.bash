@@ -220,3 +220,5 @@ rm -rf config.inc.php
 ssh ${dict[vm1]} iptables -C INPUT -p tcp --dport 80 -j ACCEPT 2> /dev/null || ssh ${dict[vm1]} iptables -I INPUT -p tcp --dport 80 -j ACCEPT
 ssh ${dict[vm1]} iptables-save > /etc/sysconfig/iptables
 ssh ${dict[vm1]} service iptables save
+
+echo -e "\e[32m]LAB COMPLETED\e[m"
