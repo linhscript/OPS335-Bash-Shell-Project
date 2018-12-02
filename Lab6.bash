@@ -193,8 +193,8 @@ then
 	mysqladmin -u root -p$password password ''
 fi
 # Check if user "roundcube" was created or not 
-mysql -u root -e 'DROP USER 'roundcube'@'localhost';' 2> /dev/null 
-mysql -uroot << sqlconf
+mysql -u root -e "DROP USER roundcube@localhost"; 2> /dev/null 
+mysql -u root << sqlconf
 CREATE USER roundcube@localhost identified by '$password';
 CREATE DATABASE IF NOT EXISTS roundcubemail;
 GRANT ALL PRIVILEGES ON roundcubemail.* TO roundcube@localhost IDENTIFIED BY '$password';
