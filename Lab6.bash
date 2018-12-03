@@ -71,6 +71,7 @@ function require {
 			for bk in $(ls /var/lib/libvirt/images/ | grep -v vm* | grep \.qcow2$)
 			do
 				echo "Backing up $bk"
+				mkdir -p /backup/full 2> /dev/null
 				pv /var/lib/libvirt/images/$bk | gzip | pv  > /backup/full/$bk.backup.gz
 			done	
 		fi
