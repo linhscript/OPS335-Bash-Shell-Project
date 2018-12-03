@@ -267,7 +267,8 @@ echo
 ### CONFIG USERNAME, HOSTNAME, DOMAIN VM1,2,3
 for vm in ${!dict[@]}
 do
-vminfo ${dict[$vm]} $vm 192.168.$digit.1 ## Need some arguments such as: IP HOSTNAME DNS1 DNS2 
+    echo "CONFIGURING $vm"
+    vminfo ${dict[$vm]} $vm 192.168.$digit.1 ## Need some arguments such as: IP HOSTNAME DNS1 DNS2 
 done
 
 echo -e "\e[1;32m COMPLETED\e[m"
