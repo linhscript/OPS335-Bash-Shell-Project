@@ -418,7 +418,7 @@ cat > named.conf << EOF
 options {
 	directory "/var/named";
         allow-query { localhost; 172.17.15.0/24; };
-        recursion no;
+        allow-recursion {localhost;172.17.15.0/24;};
 };
 
 
