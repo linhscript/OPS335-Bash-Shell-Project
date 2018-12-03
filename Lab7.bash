@@ -75,89 +75,6 @@ function require {
 			done
 		fi
 
-		### 3.Checking VMs need to be clone and status ----------------------------------
-	function clone-machine {
-		echo -e "\e[1;35mChecking clone machine\e[m"
-		count=0
-		for vm in ${vms_name[@]}
-		do 
-			if ! virsh list --all | grep -iqs $vm
-			then
-				echo "$vm need to be created"
-				echo
-				echo
-				count=1
-			fi
-		done
-		#----------------------------------------# Setup cloyne to be cloneable
-		if [ $count -gt 0 ]
-		then
-			echo -e "\e[35mStart cloning machines\e[m"
-			echo
-			echo -e "\e[1;32mCloning in progress...\e[m"
-			virsh start cloyne 2> /dev/null
-			while ! eval "ping 172.17.15.100 -c 5 > /dev/null" 
-			do
-				echo "Cloyne machine is starting"
-				sleep 3
-			done
-			sleep 5
-			## Set clone-machine configuration before cloning
-			check "ssh -o ConnectTimeout=8 172.17.15.100 ls > /dev/null" "Can not SSH to Cloyne, check and run the script again"
-			intcloyne=$(ssh 172.17.15.100 '( ip ad | grep -B 2 172.17.15 | head -1 | cut -d" " -f2 | cut -d: -f1 )' )  #### grab interface infor (some one has ens3)
-			maccloyne=$(ssh 172.17.15.100 grep ".*HWADDR.*" /etc/sysconfig/network-scripts/ifcfg-$intcloyne) #### grab mac address
-			check "ssh 172.17.15.100 grep -v -e '.*DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-$intcloyne > ipconf.txt" "File or directory not exist"
-			echo "DNS1="172.17.15.2"" >> ipconf.txt
-			echo "DNS2="172.17.15.3"" >> ipconf.txt
-			echo "PEERDNS=no" >> ipconf.txt
-			echo "DOMAIN=towns.ontario.ops" >> ipconf.txt
-			sed -i 's/'${maccloyne}'/#'${maccloyne}'/g' ipconf.txt 2> /dev/null  #comment mac address in ipconf.txt file
-			check "scp ipconf.txt 172.17.15.100:/etc/sysconfig/network-scripts/ifcfg-$intcloyne > /dev/null" "Can not copy ipconf to Cloyne"
-			rm -rf ipconf.txt > /dev/null
-			sleep 2
-			echo -e "\e[32mCloyne machine info has been collected\e[m"
-			virsh suspend cloyne			
-		
-			#---------------------------# Start cloning
-			for clonevm in ${!dict[@]} # Key (name vm)
-			do 
-				if ! virsh list --all | grep -iqs $clonevm
-				then
-					echo -e "\e[1;35mCloning $clonevm \e[m"
-					virt-clone --auto-clone -o cloyne --name $clonevm
-				#-----Turn on cloned vm without turning on cloyne machine
-				virsh start $clonevm
-				while ! eval "ping 172.17.15.100 -c 5 > /dev/null" 
-				do
-					echo "Clonning machine is starting"
-					sleep 3
-				done
-				#------ get new mac address
-				newmac=$(virsh dumpxml $clonevm | grep "mac address" | cut -d\' -f2)
-				#-----Replace mac and ip, hostname
-				ssh 172.17.15.100 "sed -i 's/.*HW.*/HWADDR\='${newmac}'/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne" ## change mac
-				ssh 172.17.15.100 "echo $clonevm.towns.ontario.ops > /etc/hostname "  #change host name
-				ssh 172.17.15.100 "sed -i 's/'172.17.15.100'/'${dict[$clonevm]}'/' /etc/sysconfig/network-scripts/ifcfg-$intcloyne" #change ip
-				echo
-				echo -e "\e[32mCloning Done $clonevm\e[m"
-				ssh 172.17.15.100 init 6
-				fi
-			done
-				#------------------# reset cloyne machine
-				oldmac=$(virsh dumpxml cloyne | grep "mac address" | cut -d\' -f2)
-				virsh resume cloyne > /dev/null 2>&1
-				while ! eval "ping 172.17.15.100 -c 5 > /dev/null" 
-				do
-					echo "Cloyne machine is starting"
-					sleep 3
-				done
-				sleep 5
-				ssh 172.17.15.100 "sed -i 's/.*HW.*/'${oldmac}'/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne"
-				ssh 172.17.15.100 init 6
-		fi
-	}		
-	clone-machine
-
 	########################################
 	echo -e "\e[1;35mChecking VMs status\e[m"
 	for vm in ${!dict[@]}
@@ -193,7 +110,17 @@ function require {
 	
 }
 require
-# Start confuguration
+# Start configuration
+
+
+## HOST MACHINE
+yum install -y nfs-utils
+echo "/home 192.168.$digit.0/24(rw,no_root_squash,insecure)" > /etc/exports
+systemctl enable nfs-server
+systemctl start nfs-server
+iptables -C INPUT -p tcp --dport 2049 -s 192.168.$digit.0/24 -j ACCEPT 2> /dev/null || iptables -I INPUT -p tcp --dport 2049 -s 192.168.$digit.0/24 -j ACCEPT
+sed -i "/^COMMIT/i -A INPUT -p tcp --dport 2049 -s 192.168.${octet}.0/24 -j ACCEPT" /etc/sysconfig/iptables
+iptables -A INPUT -p tcp --dport 2049 -s 192.168.${octet}.0/24 -j ACCEPT
 
 ## VM3 CONFIGURATION
 
