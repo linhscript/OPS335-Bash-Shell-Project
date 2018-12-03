@@ -195,8 +195,7 @@ echo
 echo -e "###\e[32mFiles Added Done\e[m###"
 echo
 #### Adding DNS and DOMAIN ####
-systemctl stop NetworkManager
-systemctl disable NetworkManager
+
 
 if [ ! -f /etc/sysconfig/network-scripts/ifcfg-ens33.backup ]
 then
@@ -235,18 +234,20 @@ echo -e "###\e[32mConfiguration Done\e[m###"
 echo
 
 ### CONFIG USERNAME, HOSTNAME, DOMAIN VM1,2,3
-for (( i=2;i<=4;i++ ))
+for vm in ${!dict[@]}
 do
-intvm=$( ssh 192.168.$digit.${i} '( ip ad | grep -B 2 192.168.$digit | head -1 | cut -d" " -f2 | cut -d: -f1 )' )
-ssh 192.168.$digit.${i} "echo vm$(($i-1)).$domain > /etc/hostname"
-check "ssh 192.168.$digit.${i} grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-$intvm > ipconf.txt" "File or directory not exist"
+intvm=$( ssh ${dict[$vm]} '( ip ad | grep -B 2 192.168.$digit | head -1 | cut -d" " -f2 | cut -d: -f1 )' )
+ssh ${dict[$vm]} "echo $vm.$domain > /etc/hostname"
+check "ssh ${dict[$vm]} grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-$intvm > ipconf.txt" "File or directory not exist"
 echo "DNS1="192.168.$digit.1"" >> ipconf.txt
 echo "PEERDNS=no" >> ipconf.txt
 echo "DOMAIN=$domain" >> ipconf.txt
-check "scp ipconf.txt 192.168.$digit.${i}:/etc/sysconfig/network-scripts/ifcfg-$intvm > /dev/null" "Can not copy ipconf to VM${i}"
+check "scp ipconf.txt ${dict[$vm]}:/etc/sysconfig/network-scripts/ifcfg-$intvm > /dev/null" "Can not copy ipconf to $vm"
 rm -rf ipconf.txt > /dev/null
-ssh 192.168.$digit.${i} "echo "search $domain" > /etc/resolv.conf"
-ssh 192.168.$digit.${i} "echo "nameserver 192.168.${digit}.1" >> /etc/resolv.conf"
+check "ssh ${dict[$vm]} systemctl stop NetworkManager" "Stop NetworkManager Failed"
+check "ssh ${dict[$vm]} systemctl disable NetworkManager" "Disable NetworkManager Failed"
+ssh ${dict[$vm]} "echo "search $domain" > /etc/resolv.conf"
+ssh ${dict[$vm]} "echo "nameserver 192.168.${digit}.1" >> /etc/resolv.conf"
 done
 
 echo -e "\e[1;32m COMPLETED\e[m"
