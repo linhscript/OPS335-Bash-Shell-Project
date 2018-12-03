@@ -117,15 +117,6 @@ virsh start vm3 > /dev/null 2>&1
 list_vms="vm1 vm2 vm3"
 
 
-##Checking running script by root###
-if [ `id -u` -ne 0 ]
-then
-	echo "Must run this script by root" >&2
-	exit 1 
-fi
-
-#### Checking Internet Connection###
-check "ping -c 3 google.ca > /dev/null" "Can not ping GOOGLE.CA, check your Internet connection "
 
 ## Installing BIND Package ######
 echo 
@@ -228,7 +219,7 @@ service iptables save
 rm -rf iptables.txt
 
 ### Remove hosts in the previous lab ###
-grep -v -i -e "vm.*" /etc/hosts > host.txt
+grep -v -i -e ".*vm.*" /etc/hosts > host.txt
 scp host.txt /etc/hosts
 echo "search $domain" > /etc/resolv.conf
 echo "nameserver 192.168.${digit}.1" >> /etc/resolv.conf
