@@ -1,25 +1,25 @@
 #!/bin/bash
 
 ### ALL INPUT BEFORE CHECKING #### -------------------
-		domain="towns.ontario.ops"
-		vms_name=(toronto ottawa kingston coburg milton)   ###-- Put the name in order --  Master Slave Other Machines
-		vms_ip=(172.17.15.2 172.17.15.3 172.17.15.5 172.17.15.6 172.17.15.8)	
+domain="towns.ontario.ops"
+vms_name=(toronto ottawa kingston coburg milton)   ###-- Put the name in order --  Master Slave Other Machines
+vms_ip=(172.17.15.2 172.17.15.3 172.17.15.5 172.17.15.6 172.17.15.8)	
 		
 		### INPUT from USER ###
-		clear
-		read -p "What is your Seneca username: " username
-		read -p "What is your FULL NAME: " fullname
-		read -s -p "Type your normal password: " password && echo
-		IP=$(cat /var/named/mydb-for-* | grep ^vm1 | head -1 | awk '{print $4}')
-		digit=$(cat /var/named/mydb-for-* | grep ^vm2 | head -1 | awk '{print $4}' | cut -d. -f3)
+clear
+read -p "What is your Seneca username: " username
+read -p "What is your FULL NAME: " fullname
+read -s -p "Type your normal password: " password && echo
+IP=$(cat /var/named/mydb-for-* | grep ^vm1 | head -1 | awk '{print $4}')
+digit=$(cat /var/named/mydb-for-* | grep ^vm2 | head -1 | awk '{print $4}' | cut -d. -f3)
 		
 		#### Create Hash Table -------------------------------
 		
-		for (( i=0; i<${#vms_name[@]};i++ ))
-		do
-			declare -A dict
-			dict+=(["${vms_name[$i]}"]="${vms_ip[$i]}")
-		done
+for (( i=0; i<${#vms_name[@]};i++ ))
+do
+	declare -A dict
+	dict+=(["${vms_name[$i]}"]="${vms_ip[$i]}")
+done
 ############### CHECKING ALL THE REQUIREMENT BEFORE RUNNING THE SCRIPT ############################
 function require {
 	function check() {
