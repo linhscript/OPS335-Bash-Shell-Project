@@ -478,6 +478,7 @@ ssh 172.17.15.8 setsebool -P samba_export_all_rw on
 # Config iptables
 echo "Adding Firewall Rules"
 ssh 172.17.15.8 iptables -C INPUT -p tcp --dport 445 -s 172.17.15.0/24 -j ACCEPT 2> /dev/null || ssh 172.17.15.8 iptables -I INPUT -p tcp --dport 445 -s 172.17.15.0/24 -j ACCEPT
+ssh 172.17.15.8 iptables -C INPUT -p tcp --dport 139 -s 172.17.15.0/24 -j ACCEPT 2> /dev/null || ssh 172.17.15.8 iptables -I INPUT -p tcp --dport 139 -s 172.17.15.0/24 -j ACCEPT
 ssh 172.17.15.8 iptables-save > /etc/sysconfig/iptables
 ssh 172.17.15.8 service iptables save
 ssh 172.17.15.8 systemctl restart smb
