@@ -34,7 +34,7 @@ function require {
                 echo -e "\e[0;31mWARNING\e[m"
                 echo
                 echo
-                zenity --error --title="An Error Occurred" --text=$2
+                zenity --error --title="An Error Occurred" --text="$2"
                 echo
                 exit 1
         fi  
@@ -111,12 +111,41 @@ function require {
     
 }
 require
+function vminfo {
+
+## Config DOMAIN, HOSTNAME, RESOLV File, Disable Network Manager
+## Need some arguments such as: IP HOSTNAME DNS1 DNS2 
+    if [ "$#" -lt 3 ] || [ "$#" -ge 5 ]
+    then
+        echo -e "\e[31mMissing or Unneeded arguments\e[m"
+        echo "USAGE: $0 IP HOSTNAME(FQDN) DNS1 DNS2(optional)" >&2
+        exit 2
+    else
+        intvm=$( ssh $1 '( ip ad | grep -B 2 192.168.$digit | head -1 | cut -d" " -f2 | cut -d: -f1 )' )
+        ssh $1 "echo $2.$domain > /etc/hostname"
+        check "ssh $1 grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-$intvm > ipconf.txt" "File or directory not exist"
+        echo "PEERDNS=no" >> ipconf.txt
+        echo "DNS1=$3" >> ipconf.txt
+        if [ ! -z "$4" ]
+        then
+            echo "DNS2=$4" >> ipconf.txt
+        fi
+        echo "DOMAIN=$domain" >> ipconf.txt
+        check "scp ipconf.txt $1:/etc/sysconfig/network-scripts/ifcfg-$intvm > /dev/null" "Can not copy ipconf to VM $2"
+        ssh $1 "echo "search $domain" > /etc/resolv.conf"
+        ssh $1 "systemctl stop NetworkManager"
+        ssh $1 "systemctl disable NetworkManager"
+        rm -rf ipconf.txt > /dev/null
+    fi
+}
+#----------------------------------------------------------------------------------------------------------------------------------------------
+
+## START CONFIGURATION
+
+
 virsh start vm1 > /dev/null 2>&1
 virsh start vm2 > /dev/null 2>&1
 virsh start vm3 > /dev/null 2>&1
-list_vms="vm1 vm2 vm3"
-
-
 
 ## Installing BIND Package ######
 echo 
@@ -208,6 +237,7 @@ echo "DOMAIN=$username.ops" >> /etc/sysconfig/network-scripts/ifcfg-ens33
 echo host.$domain > /etc/hostname
 rm -rf ipconf.txt
 
+
 #### Adding rules in IPtables ####
 grep -v ".*INPUT.*dport 53.*" /etc/sysconfig/iptables > iptables.txt
 scp iptables.txt /etc/sysconfig/iptables
@@ -236,18 +266,7 @@ echo
 ### CONFIG USERNAME, HOSTNAME, DOMAIN VM1,2,3
 for vm in ${!dict[@]}
 do
-intvm=$( ssh ${dict[$vm]} '( ip ad | grep -B 2 192.168.$digit | head -1 | cut -d" " -f2 | cut -d: -f1 )' )
-ssh ${dict[$vm]} "echo $vm.$domain > /etc/hostname"
-check "ssh ${dict[$vm]} grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-$intvm > ipconf.txt" "File or directory not exist"
-echo "DNS1="192.168.$digit.1"" >> ipconf.txt
-echo "PEERDNS=no" >> ipconf.txt
-echo "DOMAIN=$domain" >> ipconf.txt
-check "scp ipconf.txt ${dict[$vm]}:/etc/sysconfig/network-scripts/ifcfg-$intvm > /dev/null" "Can not copy ipconf to $vm"
-rm -rf ipconf.txt > /dev/null
-check "ssh ${dict[$vm]} systemctl stop NetworkManager" "Stop NetworkManager Failed"
-check "ssh ${dict[$vm]} systemctl disable NetworkManager" "Disable NetworkManager Failed"
-ssh ${dict[$vm]} "echo "search $domain" > /etc/resolv.conf"
-ssh ${dict[$vm]} "echo "nameserver 192.168.${digit}.1" >> /etc/resolv.conf"
+vminfo ${dict[$vm]} $vm 192.168.$digit.1 ## Need some arguments such as: IP HOSTNAME DNS1 DNS2 
 done
 
 echo -e "\e[1;32m COMPLETED\e[m"

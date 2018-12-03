@@ -1,7 +1,7 @@
 function vminfo {
 
 ## Config DOMAIN, HOSTNAME, RESOLV File, Disable Network Manager
-## Need some arguments such as: IP HOSTNAME DNS1 DNS2 
+## Need some arguments such as: IP VM_name DNS1 DNS2 
 	if [ "$#" -lt 3 ] || [ "$#" -ge 5 ]
 	then
 		echo -e "\e[31mMissing or Unneeded arguments\e[m"
@@ -9,7 +9,7 @@ function vminfo {
 		exit 2
 	else
 		intvm=$( ssh $1 '( ip ad | grep -B 2 192.168.$digit | head -1 | cut -d" " -f2 | cut -d: -f1 )' )
-		ssh $1 "echo $2 > /etc/hostname"
+		ssh $1 "echo $2.$domain > /etc/hostname"
 		check "ssh $1 grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-$intvm > ipconf.txt" "File or directory not exist"
 		echo "PEERDNS=no" >> ipconf.txt
 		echo "DNS1=$3" >> ipconf.txt

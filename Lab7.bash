@@ -104,12 +104,11 @@ function require {
 	check "ssh ${dict[$ssh_vm]} yum update -y" "Can not YUM UPDATE from $ssh_vm"
 	done
 	
-	### 5.Checking jobs done from Assignment 1 -------------------------
 
-	#check "ssh ${vms_ip[0]} host ${vms_name[0]}.$domain > /dev/null 2>&1" "Name service in ${vms_name[0]} is not working"
-	
 }
 require
+
+#----------------------------------------------------------------------------------------------------------------------------------------
 # Start configuration
 
 
@@ -119,8 +118,6 @@ echo "/home 192.168.$digit.0/24(rw,no_root_squash,insecure)" > /etc/exports
 systemctl enable nfs-server
 systemctl start nfs-server
 iptables -C INPUT -p tcp --dport 2049 -s 192.168.$digit.0/24 -j ACCEPT 2> /dev/null || iptables -I INPUT -p tcp --dport 2049 -s 192.168.$digit.0/24 -j ACCEPT
-sed -i "/^COMMIT/i -A INPUT -p tcp --dport 2049 -s 192.168.${octet}.0/24 -j ACCEPT" /etc/sysconfig/iptables
-iptables -A INPUT -p tcp --dport 2049 -s 192.168.${octet}.0/24 -j ACCEPT
 
 ## VM3 CONFIGURATION
 
