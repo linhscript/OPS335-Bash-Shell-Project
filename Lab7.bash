@@ -227,7 +227,7 @@ echo -e "\e[32mDone Installation \e[m"
 
 # # Config SELINUX
 echo -e "\e[1;35mSELINUX CONFIG\e[m"
-ssh ${dict[vm3]} "echo "192.168.${digit}.1:/home	/home	nfs4	defaults	0 0" >> /etc/fstab "
+ssh ${dict[vm3]} "echo -e '192.168.${digit}.1:/home	/home	nfs4	defaults	0 0' >> /etc/fstab "
 ssh ${dict[vm3]} "setsebool -P use_nfs_home_dirs 1"
 ssh ${dict[vm3]} "nisdomainname $username.ops"
 ssh ${dict[vm3]} "setenforce permissive"
