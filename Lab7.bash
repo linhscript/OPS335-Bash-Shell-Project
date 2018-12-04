@@ -234,7 +234,7 @@ ssh ${dict[vm3]} "setenforce permissive"
 
 
 # /Etc/yp.conf on client machine
-grep -v -e "^domain.*" /etc/yp.conf > yp.conf
+check "ssh ${dict[vm3]} grep -v -e '^domain.*' /etc/yp.conf > yp.conf" "Grep Failed on VM3"
 cat >> yp.conf << EOF
 domain $username.ops server 192.168.$digit.1
 EOF
@@ -253,9 +253,9 @@ ssh ${dict[vm3]} iptables -C INPUT -p udp --dport 111  -j ACCEPT 2> /dev/null ||
 # Config nsswitch.conf
 echo -e "\e[1;35mNSSwitch\e[m"
 
-ssh ssh ${dict[vm3]} "sed -i 's/$passwd.*/passwd:      nis files/' /etc/nsswitch.conf"
-ssh ssh ${dict[vm3]} "sed -i 's/$shadow.*/shadow:      nis files/' /etc/nsswitch.conf"
-ssh ssh ${dict[vm3]} "sed -i 's/$group.*/group:      nis files/' /etc/nsswitch.conf"
+ssh ${dict[vm3]} "sed -i 's/$passwd.*/passwd:      nis files/' /etc/nsswitch.conf"
+ssh ${dict[vm3]} "sed -i 's/$shadow.*/shadow:      nis files/' /etc/nsswitch.conf"
+ssh ${dict[vm3]} "sed -i 's/$group.*/group:      nis files/' /etc/nsswitch.conf"
 
 
 check "ssh ${dict[vm3]} systemctl start ypbind" "Can not start services on VM3"
