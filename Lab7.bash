@@ -263,4 +263,4 @@ ssh ${dict[vm3]} "sed -i 's/^group.*/group:      nis files/' /etc/nsswitch.conf"
 echo -e "\e[1;35mStart and Enable YPBIND Services\e[m"
 check "ssh ${dict[vm3]} systemctl start ypbind" "Can not start services on VM3"
 check "ssh ${dict[vm3]} systemctl enable ypbind" "Can not enable services on VM3"
-
+ssh ${dict[vm3]} systemctl restart iptables
