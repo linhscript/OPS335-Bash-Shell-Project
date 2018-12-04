@@ -198,11 +198,11 @@ systemctl enable ypbind
 
 # Create user test lab7
 echo -e "\e[1;35mCreate user test lab7 - testlab7\e[m"
-ssh ${dict[$vm3]} useradd -m testlab7 2> /dev/null
-ssh ${dict[$vm3]} '( echo 'testlab7:$password' | chpasswd )'
+useradd -m testlab7 2> /dev/null
+echo testlab7:$password | chpasswd
 echo -e "\e[32mUser testlab7 Created \e[m"
 
-## VM3 CONFIGURATION
+## VM3 CONFIGURATION---------------------------------------------------------
 
 # Network and hostname 
 vminfo ${dict[$vm3]} vm3 192.168.$digit.1 ## Need some arguments such as: IP HOSTNAME DNS1 DNS2 
@@ -237,8 +237,9 @@ grep -v -e "^domain.*" /etc/yp.conf > yp.conf
 cat >> yp.conf << EOF
 domain $username.ops server 192.168.$digit.1
 EOF
-check "scp yp.conf /etc/yp.conf" "/etc/yp.conf failed"
+check "scp yp.conf ${dict[vm3]}:/etc/yp.conf" "/etc/yp.conf failed"
 rm -rf yp.conf
+
 
 ## IPTABLES CLIENT MACHINE
 ssh ${dict[vm3]} iptables -C INPUT -p tcp --dport 783  -j ACCEPT 2> /dev/null || ssh ${dict[vm3]} iptables -I INPUT -p tcp --dport 783 -j ACCEPT
@@ -246,7 +247,9 @@ ssh ${dict[vm3]} iptables -C INPUT -p udp --dport 783  -j ACCEPT 2> /dev/null ||
 ssh ${dict[vm3]} iptables -C INPUT -p tcp --dport 111  -j ACCEPT 2> /dev/null || ssh ${dict[vm3]} iptables -I INPUT -p tcp --dport 111 -j ACCEPT
 ssh ${dict[vm3]} iptables -C INPUT -p udp --dport 111  -j ACCEPT 2> /dev/null || ssh ${dict[vm3]} iptables -I INPUT -p udp --dport 111 -j ACCEPT
 
-
+#Enable and start service
+ssh ${dict[vm3]} systemctl start ypbind
+ssh ${dict[vm3]} systemctl enable ypbind
 
 
 
