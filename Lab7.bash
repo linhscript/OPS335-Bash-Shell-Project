@@ -205,31 +205,31 @@ systemctl enable ypbind
 ## VM3 CONFIGURATION---------------------------------------------------------
 
 # Network and hostname 
-vminfo ${dict[$vm3]} vm3 192.168.$digit.1 ## Need some arguments such as: IP HOSTNAME DNS1 DNS2 
+vminfo ${dict[vm3]} vm3 192.168.$digit.1 ## Need some arguments such as: IP HOSTNAME DNS1 DNS2 
 
 # Create user
 echo -e "\e[1;35mCreate regular user\e[m"
-ssh ${dict[$vm3]} useradd -m $username 2> /dev/null
-ssh ${dict[$vm3]} '( echo '$username:$password' | chpasswd )'
+ssh ${dict[vm3]} useradd -m $username 2> /dev/null
+ssh ${dict[vm3]} '( echo '$username:$password' | chpasswd )'
 echo -e "\e[32mUser Created \e[m"
 
 # Create user test lab7
 echo -e "\e[1;35mCreate user test lab7 - testlab7\e[m"
-ssh ${dict[$vm3]} useradd -m testlab7 2> /dev/null
-ssh ${dict[$vm3]} '( echo 'testlab7:$password' | chpasswd )'
+ssh ${dict[vm3]} useradd -m testlab7 2> /dev/null
+ssh ${dict[vm3]} '( echo 'testlab7:$password' | chpasswd )'
 echo -e "\e[32mUser testlab7 Created \e[m"
 
 # Install packages
 echo -e "\e[1;35mInstall packages\e[m"
-check "ssh ${dict[$vm3]} yum install -y ypbind ypserv" "Can not install ypbind and ypserv"
+check "ssh ${dict[vm3]} yum install -y ypbind ypserv" "Can not install ypbind and ypserv"
 echo -e "\e[32mDone Installation \e[m"
-ssh ${dict[$vm3]} "setenforce permissive"
-check "ssh ${dict[$vm3]} systemctl start ypbind" "Can not start services on VM3"
-check "ssh ${dict[$vm3]} systemctl enable ypbind" "Can not enable services on VM3"
-check "ssh ${dict[$vm3]} systemctl start ypserv" "Can not start services on VM3"
-check "ssh ${dict[$vm3]} systemctl enable ypserv" "Can not enable services on VM3"
-ssh ${dict[$vm3]} "echo "192.168.${octet}.1:/home	/home	nfs4	defaults	0 0" >> /etc/fstab "
-ssh ${dict[$vm3]} "setsebool -P use_nfs_home_dirs 1"
+ssh ${dict[vm3]} "setenforce permissive"
+check "ssh ${dict[vm3]} systemctl start ypbind" "Can not start services on VM3"
+check "ssh ${dict[vm3]} systemctl enable ypbind" "Can not enable services on VM3"
+check "ssh ${dict[vm3]} systemctl start ypserv" "Can not start services on VM3"
+check "ssh ${dict[vm3]} systemctl enable ypserv" "Can not enable services on VM3"
+ssh ${dict[vm3]} "echo "192.168.${octet}.1:/home	/home	nfs4	defaults	0 0" >> /etc/fstab "
+ssh ${dict[vm3]} "setsebool -P use_nfs_home_dirs 1"
 
 
 # /Etc/yp.conf on client machine
