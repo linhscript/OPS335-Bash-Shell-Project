@@ -224,15 +224,11 @@ echo -e "\e[1;35mInstall packages\e[m"
 check "ssh ${dict[vm3]} yum install -y ypbind ypserv" "Can not install ypbind and ypserv"
 echo -e "\e[32mDone Installation \e[m"
 
-# Set Permission
+# # Config SELINUX
 ssh ${dict[vm3]} "echo "192.168.${digit}.1:/home	/home	nfs4	defaults	0 0" >> /etc/fstab "
 ssh ${dict[vm3]} "setsebool -P use_nfs_home_dirs 1"
 nisdomainname $username.ops
 ssh ${dict[vm3]} "setenforce permissive"
-check "ssh ${dict[vm3]} systemctl start ypbind" "Can not start services on VM3"
-check "ssh ${dict[vm3]} systemctl enable ypbind" "Can not enable services on VM3"
-check "ssh ${dict[vm3]} systemctl start ypserv" "Can not start services on VM3"
-check "ssh ${dict[vm3]} systemctl enable ypserv" "Can not enable services on VM3"
 
 
 # /Etc/yp.conf on client machine
@@ -254,13 +250,17 @@ ssh ${dict[vm3]} iptables -C INPUT -p udp --dport 111  -j ACCEPT 2> /dev/null ||
 ssh ${dict[vm3]} systemctl start ypbind
 ssh ${dict[vm3]} systemctl enable ypbind
 
-# Config SELINUX
-ssh ${dict[vm3]} "setsebool -P use_nfs_home_dirs 1"
-ssh ${dict[vm3]} "echo "192.168.${digit}.1:/home	/home	nfs4	defaults	0 0" >> /etc/fstab"
+
 
 # Config nsswitch.conf
 
 ssh ssh ${dict[vm3]} "sed -i 's/$passwd.*/passwd:      nis files/' /etc/nsswitch.conf"
 ssh ssh ${dict[vm3]} "sed -i 's/$shadow.*/shadow:      nis files/' /etc/nsswitch.conf"
 ssh ssh ${dict[vm3]} "sed -i 's/$group.*/group:      nis files/' /etc/nsswitch.conf"
-## NOT DONE - BECAREFUL TO RUN
+
+
+check "ssh ${dict[vm3]} systemctl start ypbind" "Can not start services on VM3"
+check "ssh ${dict[vm3]} systemctl enable ypbind" "Can not enable services on VM3"
+check "ssh ${dict[vm3]} systemctl start ypserv" "Can not start services on VM3"
+check "ssh ${dict[vm3]} systemctl enable ypserv" "Can not enable services on VM3"
+
