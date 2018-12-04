@@ -129,8 +129,7 @@ function vminfo {
 		fi
 		echo "DOMAIN=$domain" >> ipconf.txt
 		check "scp ipconf.txt $1:/etc/sysconfig/network-scripts/ifcfg-$intvm > /dev/null" "Can not copy ipconf to VM $2"
-		ssh $1 "echo "search $domain" > /etc/resolv.conf"
-		ssh $1 "echo nameserver $3 >> /etc/resolv.conf"
+		ssh $1 "echo -e "search $domain\nnameserver $3" > /etc/resolv.conf"
 		ssh $1 "systemctl stop NetworkManager"
 		ssh $1 "systemctl disable NetworkManager"
 		rm -rf ipconf.txt > /dev/null
