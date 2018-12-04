@@ -73,6 +73,21 @@ function require {
 				pv /var/lib/libvirt/images/$bk | gzip | pv  > /backup/full/$bk.backup.gz
 			done
 		fi
+		
+			########################################
+		echo -e "\e[1;35mChecking VMs status\e[m"
+		for vm in ${!dict[@]}
+		do 
+			if ! virsh list | grep -iqs $vm
+			then
+				virsh start $vm > /dev/null 2>&1
+				while ! eval "ping ${dict[$vm]} -c 5 > /dev/null" 
+				do
+					echo -e "\e[1;34mMachine $vm is turning on \e[0m" >&2
+					sleep 3
+				done
+			fi
+		done
 
 		### 3.Checking VMs need to be clone and status ----------------------------------
 	function clone-machine {
@@ -157,20 +172,7 @@ function require {
 	}		
 	clone-machine
 
-	########################################
-	echo -e "\e[1;35mChecking VMs status\e[m"
-	for vm in ${!dict[@]}
-	do 
-		if ! virsh list | grep -iqs $vm
-		then
-			virsh start $vm > /dev/null 2>&1
-			while ! eval "ping ${dict[$vm]} -c 5 > /dev/null" 
-			do
-				echo -e "\e[1;34mMachine $vm is turning on \e[0m" >&2
-				sleep 3
-			done
-		fi
-	done
+
 	
 	### 4.SSH and Pinging and Update Check ------------------------------------
 	echo -e "\e[1;35mRestarting Named\e[m"
