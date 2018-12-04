@@ -224,13 +224,16 @@ echo -e "\e[32mUser testlab7 Created \e[m"
 echo -e "\e[1;35mInstall packages\e[m"
 check "ssh ${dict[vm3]} yum install -y ypbind ypserv" "Can not install ypbind and ypserv"
 echo -e "\e[32mDone Installation \e[m"
+
+# Set Permission
+ssh ${dict[vm3]} "echo "192.168.${digit}.1:/home	/home	nfs4	defaults	0 0" >> /etc/fstab "
+ssh ${dict[vm3]} "setsebool -P use_nfs_home_dirs 1"
+nisdomainname $username.ops
 ssh ${dict[vm3]} "setenforce permissive"
 check "ssh ${dict[vm3]} systemctl start ypbind" "Can not start services on VM3"
 check "ssh ${dict[vm3]} systemctl enable ypbind" "Can not enable services on VM3"
 check "ssh ${dict[vm3]} systemctl start ypserv" "Can not start services on VM3"
 check "ssh ${dict[vm3]} systemctl enable ypserv" "Can not enable services on VM3"
-ssh ${dict[vm3]} "echo "192.168.${octet}.1:/home	/home	nfs4	defaults	0 0" >> /etc/fstab "
-ssh ${dict[vm3]} "setsebool -P use_nfs_home_dirs 1"
 
 
 # /Etc/yp.conf on client machine
