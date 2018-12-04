@@ -148,6 +148,7 @@ systemctl start nfs-server
 iptables -C INPUT -p tcp --dport 2049 -s 192.168.$digit.0/24 -j ACCEPT 2> /dev/null || iptables -I INPUT -p tcp --dport 2049 -s 192.168.$digit.0/24 -j ACCEPT
 
 # Install package
+echo -e "\e[1;35mInstall package\e[m"
 check "yum install ypserv ypbind -y"
 
 # /etc/sysconfig/network
@@ -203,7 +204,7 @@ systemctl enable ypbind
 
 
 ## VM3 CONFIGURATION---------------------------------------------------------
-
+echo -e "\e[1;35mStart config VM3\e[m"
 # Network and hostname 
 vminfo ${dict[vm3]} vm3 192.168.$digit.1 ## Need some arguments such as: IP HOSTNAME DNS1 DNS2 
 
@@ -225,6 +226,7 @@ check "ssh ${dict[vm3]} yum install -y ypbind ypserv" "Can not install ypbind an
 echo -e "\e[32mDone Installation \e[m"
 
 # # Config SELINUX
+echo -e "\e[1;35mSELINUX CONFIG\e[m"
 ssh ${dict[vm3]} "echo "192.168.${digit}.1:/home	/home	nfs4	defaults	0 0" >> /etc/fstab "
 ssh ${dict[vm3]} "setsebool -P use_nfs_home_dirs 1"
 ssh ${dict[vm3]} "nisdomainname $username.ops"
@@ -241,18 +243,15 @@ rm -rf yp.conf
 
 
 ## IPTABLES CLIENT MACHINE
+echo -e "\e[1;35mVM3 IPTABLES\e[m"
 ssh ${dict[vm3]} iptables -C INPUT -p tcp --dport 783  -j ACCEPT 2> /dev/null || ssh ${dict[vm3]} iptables -I INPUT -p tcp --dport 783 -j ACCEPT
 ssh ${dict[vm3]} iptables -C INPUT -p udp --dport 783  -j ACCEPT 2> /dev/null || ssh ${dict[vm3]} iptables -I INPUT -p udp --dport 783 -j ACCEPT
 ssh ${dict[vm3]} iptables -C INPUT -p tcp --dport 111  -j ACCEPT 2> /dev/null || ssh ${dict[vm3]} iptables -I INPUT -p tcp --dport 111 -j ACCEPT
 ssh ${dict[vm3]} iptables -C INPUT -p udp --dport 111  -j ACCEPT 2> /dev/null || ssh ${dict[vm3]} iptables -I INPUT -p udp --dport 111 -j ACCEPT
 
-#Enable and start service
-ssh ${dict[vm3]} systemctl start ypbind
-ssh ${dict[vm3]} systemctl enable ypbind
-
-
 
 # Config nsswitch.conf
+echo -e "\e[1;35mNSSwitch\e[m"
 
 ssh ssh ${dict[vm3]} "sed -i 's/$passwd.*/passwd:      nis files/' /etc/nsswitch.conf"
 ssh ssh ${dict[vm3]} "sed -i 's/$shadow.*/shadow:      nis files/' /etc/nsswitch.conf"
@@ -261,6 +260,4 @@ ssh ssh ${dict[vm3]} "sed -i 's/$group.*/group:      nis files/' /etc/nsswitch.c
 
 check "ssh ${dict[vm3]} systemctl start ypbind" "Can not start services on VM3"
 check "ssh ${dict[vm3]} systemctl enable ypbind" "Can not enable services on VM3"
-check "ssh ${dict[vm3]} systemctl start ypserv" "Can not start services on VM3"
-check "ssh ${dict[vm3]} systemctl enable ypserv" "Can not enable services on VM3"
 
