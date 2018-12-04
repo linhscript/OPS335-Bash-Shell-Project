@@ -187,6 +187,11 @@ then
 	cp /var/yp/Makefile /var/yp/Makefile.orig
 fi
 
+# Create user test lab7
+echo -e "\e[1;35mCreate user test lab7 - testlab7\e[m"
+useradd -m testlab7 2> /dev/null
+echo testlab7:$password | chpasswd
+echo -e "\e[32mUser testlab7 Created \e[m"
 
 # Make config
 
@@ -196,11 +201,6 @@ make -C /var/yp/
 systemctl start ypbind
 systemctl enable ypbind
 
-# Create user test lab7
-echo -e "\e[1;35mCreate user test lab7 - testlab7\e[m"
-useradd -m testlab7 2> /dev/null
-echo testlab7:$password | chpasswd
-echo -e "\e[32mUser testlab7 Created \e[m"
 
 ## VM3 CONFIGURATION---------------------------------------------------------
 
@@ -251,7 +251,13 @@ ssh ${dict[vm3]} iptables -C INPUT -p udp --dport 111  -j ACCEPT 2> /dev/null ||
 ssh ${dict[vm3]} systemctl start ypbind
 ssh ${dict[vm3]} systemctl enable ypbind
 
+# Config SELINUX
+ssh ${dict[vm3]} "setsebool -P use_nfs_home_dirs 1"
+ssh ${dict[vm3]} "echo "192.168.${digit}.1:/home	/home	nfs4	defaults	0 0" >> /etc/fstab"
 
+# Config nsswitch.conf
 
-
+ssh ssh ${dict[vm3]} "sed -i 's/$passwd.*/passwd:      nis files/' /etc/nsswitch.conf"
+ssh ssh ${dict[vm3]} "sed -i 's/$shadow.*/shadow:      nis files/' /etc/nsswitch.conf"
+ssh ssh ${dict[vm3]} "sed -i 's/$group.*/group:      nis files/' /etc/nsswitch.conf"
 ## NOT DONE - BECAREFUL TO RUN
