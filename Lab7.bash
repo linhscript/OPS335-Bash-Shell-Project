@@ -249,7 +249,7 @@ ssh ${dict[vm3]} iptables -C INPUT -p udp --dport 783  -j ACCEPT 2> /dev/null ||
 ssh ${dict[vm3]} iptables -C INPUT -p tcp --dport 111  -j ACCEPT 2> /dev/null || ssh ${dict[vm3]} iptables -I INPUT -p tcp --dport 111 -j ACCEPT
 ssh ${dict[vm3]} iptables -C INPUT -p udp --dport 111  -j ACCEPT 2> /dev/null || ssh ${dict[vm3]} iptables -I INPUT -p udp --dport 111 -j ACCEPT
 ssh ${dict[vm3]} "iptables-save > /etc/sysconfig/iptables"
-ssh ${dict[vm3]} "services iptables save"
+ssh ${dict[vm3]} "service iptables save"
 ssh ${dict[vm3]} systemctl stop iptables
 ssh ${dict[vm3]} iptables -F
 
