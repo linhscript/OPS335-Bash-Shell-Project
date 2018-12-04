@@ -220,7 +220,7 @@ $config['des_key'] = 'LOMmLxXmsYp9XB7m00PA6RXf';
 $config['plugins'] = array();
 
 EOF
-scp config.inc.php ${dict[vm1]}:/var/www/html/webmail/config/
+#scp config.inc.php ${dict[vm1]}:/var/www/html/webmail/config/
 rm -rf config.inc.php
 
 

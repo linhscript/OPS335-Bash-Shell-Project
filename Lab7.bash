@@ -101,71 +101,154 @@ function require {
 	do
 	check "ssh -o ConnectTimeout=5 -oStrictHostKeyChecking=no ${dict[$ssh_vm]} ls > /dev/null" "Can not SSH to $ssh_vm, check and run the script again "
 	check "ssh ${dict[$ssh_vm]} ping -c 3 google.ca > /dev/null" "Can not ping GOOGLE.CA from $ssh_vm, check internet connection then run the script again"
-	check "ssh ${dict[$ssh_vm]} yum update -y" "Can not YUM UPDATE from $ssh_vm"
+	#check "ssh ${dict[$ssh_vm]} yum update -y" "Can not YUM UPDATE from $ssh_vm"
 	done
 	
 
 }
 require
 
+function vminfo {
+
+## Config DOMAIN, HOSTNAME, RESOLV File, Disable Network Manager
+## Need some arguments such as: IP VM_name DNS1 DNS2 
+	if [ "$#" -lt 3 ] || [ "$#" -ge 5 ]
+	then
+		echo -e "\e[31mMissing or Unneeded arguments\e[m"
+		echo "USAGE: $0 IP HOSTNAME(FQDN) DNS1 DNS2(optional)" >&2
+		exit 2
+	else
+		intvm=$( ssh $1 '( ip ad | grep -B 2 192.168.$digit | head -1 | cut -d" " -f2 | cut -d: -f1 )' )
+		ssh $1 "echo $2.$domain > /etc/hostname"
+		check "ssh $1 grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-$intvm > ipconf.txt" "File or directory not exist"
+		echo "PEERDNS=no" >> ipconf.txt
+		echo "DNS1=$3" >> ipconf.txt
+		if [ ! -z "$4" ]
+		then
+			echo "DNS2=$4" >> ipconf.txt
+		fi
+		echo "DOMAIN=$domain" >> ipconf.txt
+		check "scp ipconf.txt $1:/etc/sysconfig/network-scripts/ifcfg-$intvm > /dev/null" "Can not copy ipconf to VM $2"
+		ssh $1 "echo "search $domain" > /etc/resolv.conf"
+		ssh $1 "systemctl stop NetworkManager"
+		ssh $1 "systemctl disable NetworkManager"
+		rm -rf ipconf.txt > /dev/null
+	fi
+}
 #----------------------------------------------------------------------------------------------------------------------------------------
 # Start configuration
 
 
 ## HOST MACHINE
+# Pre-config
 yum install -y nfs-utils
 echo "/home 192.168.$digit.0/24(rw,no_root_squash,insecure)" > /etc/exports
 systemctl enable nfs-server
 systemctl start nfs-server
 iptables -C INPUT -p tcp --dport 2049 -s 192.168.$digit.0/24 -j ACCEPT 2> /dev/null || iptables -I INPUT -p tcp --dport 2049 -s 192.168.$digit.0/24 -j ACCEPT
 
+# Install package
+check "yum install ypserv ypbind -y"
+
+# /etc/sysconfig/network
+grep -v -e ".*NISDOMAIN.*" -e ".*YPSERV.*" /etc/sysconfig/network > network
+cat >> network << EOF
+NISDOMAIN="$username.ops"
+YPSERV_ARGS="-p 783"" >
+EOF
+check "scp network /etc/sysconfig/network" "/etc/sysconfig/network failed"
+rm -rf network
+
+nisdomainname $username.ops
+systemctl enable rhel-domainname
+systemctl start rhel-domainname
+
+# /etc/yp.conf
+grep -v -e "^domain.*" /etc/yp.conf > yp.conf
+cat >> yp.conf << EOF
+domain $username.ops server 127.0.0.1
+EOF
+check "scp yp.conf /etc/yp.conf" "/etc/yp.conf failed"
+rm -rf yp.conf
+
+# /var/yp/securenets
+cat > /var/yp/securenets << EOF
+host 127.0.0.1
+255.255.255.0   192.168.$digit.0
+EOF
+
+# service YPSERV
+systemctl start ypserv.service
+systemctl enable ypserv.service
+
+# Backup NIS DB
+if [ ! -f /var/yp/Makefile.orig ] 
+then
+	cp /var/yp/Makefile /var/yp/Makefile.orig
+fi
+
+
+# Make config
+
+make -C /var/yp/
+
+# Enable YPBIND SERVICE
+systemctl start ypbind
+systemctl enable ypbind
+
+# Create user test lab7
+echo -e "\e[1;35mCreate user test lab7 - testlab7\e[m"
+ssh ${dict[$vm3]} useradd -m testlab7 2> /dev/null
+ssh ${dict[$vm3]} '( echo 'testlab7:$password' | chpasswd )'
+echo -e "\e[32mUser testlab7 Created \e[m"
+
 ## VM3 CONFIGURATION
 
 # Network and hostname 
-intVM3=$( ssh 192.168.${digit}.4 '( ip ad | grep -B 2 192.168.${digit} | head -1 | cut -d" " -f2 | cut -d: -f1 )' )
-ssh 192.168.${digit}.4 "echo vm3.$domain > /etc/hostname"
-check "ssh 192.168.${digit}.4 grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-$intVM3 > ipconf.txt" "File or directory not exist"
-echo "DNS1="192.168.${digit}.1"" >> ipconf.txt
-echo "PEERDNS=no" >> ipconf.txt
-echo "DOMAIN=$domain" >> ipconf.txt
-check "scp ipconf.txt 192.168.${digit}.4:/etc/sysconfig/network-scripts/ifcfg-$intVM3 > /dev/null" "Can not copy ipconf to VM3"
-rm -rf ipconf.txt > /dev/null
+vminfo ${dict[$vm3]} vm3 192.168.$digit.1 ## Need some arguments such as: IP HOSTNAME DNS1 DNS2 
 
 # Create user
 echo -e "\e[1;35mCreate regular user\e[m"
-ssh 192.168.${digit}.4 useradd -m $username 2> /dev/null
-ssh 192.168.${digit}.4 '( echo '$username:$password' | chpasswd )'
+ssh ${dict[$vm3]} useradd -m $username 2> /dev/null
+ssh ${dict[$vm3]} '( echo '$username:$password' | chpasswd )'
 echo -e "\e[32mUser Created \e[m"
+
+# Create user test lab7
+echo -e "\e[1;35mCreate user test lab7 - testlab7\e[m"
+ssh ${dict[$vm3]} useradd -m testlab7 2> /dev/null
+ssh ${dict[$vm3]} '( echo 'testlab7:$password' | chpasswd )'
+echo -e "\e[32mUser testlab7 Created \e[m"
 
 # Install packages
 echo -e "\e[1;35mInstall packages\e[m"
-check "ssh 192.168.${digit}.4 yum install -y ypbind ypserv" "Can not install ypbind and ypserv"
+check "ssh ${dict[$vm3]} yum install -y ypbind ypserv" "Can not install ypbind and ypserv"
 echo -e "\e[32mDone Installation \e[m"
-ssh 192.168.${digit}.4 "setenforce permissive"
-check "ssh 192.168.${digit}.4 systemctl start ypbind" "Can not start services on VM3"
-check "ssh 192.168.${digit}.4 systemctl enable ypbind" "Can not enable services on VM3"
-check "ssh 192.168.${digit}.4 systemctl start ypserv" "Can not start services on VM3"
-check "ssh 192.168.${digit}.4 systemctl enable ypserv" "Can not enable services on VM3"
-ssh 192.168.${digit}.4 "echo "192.168.${octet}.1:/home	/home	nfs4	defaults	0 0" >> /etc/fstab "
-ssh 192.168.${digit}.4 "setsebool -P use_nfs_home_dirs 1"
-
-# Disable selinux
-#ssh 192.168.${digit}.4 "sed"
-
-#Add the following line to the bottom of the file /etc/sysconfig/network
-
-#start and enable the rhel-domainname service.
-
-#Create the file /var/yp/securenets
+ssh ${dict[$vm3]} "setenforce permissive"
+check "ssh ${dict[$vm3]} systemctl start ypbind" "Can not start services on VM3"
+check "ssh ${dict[$vm3]} systemctl enable ypbind" "Can not enable services on VM3"
+check "ssh ${dict[$vm3]} systemctl start ypserv" "Can not start services on VM3"
+check "ssh ${dict[$vm3]} systemctl enable ypserv" "Can not enable services on VM3"
+ssh ${dict[$vm3]} "echo "192.168.${octet}.1:/home	/home	nfs4	defaults	0 0" >> /etc/fstab "
+ssh ${dict[$vm3]} "setsebool -P use_nfs_home_dirs 1"
 
 
+# /Etc/yp.conf on client machine
+grep -v -e "^domain.*" /etc/yp.conf > yp.conf
+cat >> yp.conf << EOF
+domain $username.ops server 192.168.$digit.1
+EOF
+check "scp yp.conf /etc/yp.conf" "/etc/yp.conf failed"
+rm -rf yp.conf
 
-## HOST MACHINE CONFIGURATION
+## IPTABLES CLIENT MACHINE
+ssh ${dict[vm3]} iptables -C INPUT -p tcp --dport 783  -j ACCEPT 2> /dev/null || ssh ${dict[vm3]} iptables -I INPUT -p tcp --dport 783 -j ACCEPT
+ssh ${dict[vm3]} iptables -C INPUT -p udp --dport 783  -j ACCEPT 2> /dev/null || ssh ${dict[vm3]} iptables -I INPUT -p udp --dport 783 -j ACCEPT
+ssh ${dict[vm3]} iptables -C INPUT -p tcp --dport 111  -j ACCEPT 2> /dev/null || ssh ${dict[vm3]} iptables -I INPUT -p tcp --dport 111 -j ACCEPT
+ssh ${dict[vm3]} iptables -C INPUT -p udp --dport 111  -j ACCEPT 2> /dev/null || ssh ${dict[vm3]} iptables -I INPUT -p udp --dport 111 -j ACCEPT
 
-echo "/home 192.168.${digit}.0/24(rw,no_root_squash,insecure)" > /etc/exports
-systemctl enable nfs-server
-systemctl start nfs-server
-sed -i "/^COMMIT/i -A INPUT -p tcp --dport 2049 -s 192.168.${digit}.0/24 -j ACCEPT" /etc/sysconfig/iptables
-iptables -A INPUT -p tcp --dport 2049 -s 192.168.${digit}.0/24 -j ACCEPT
+
+
+
+
 
 ## NOT DONE - BECAREFUL TO RUN

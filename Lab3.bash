@@ -268,6 +268,7 @@ echo
 for vm in ${!dict[@]}
 do
     echo "CONFIGURING $vm"
+    echo "Just waiting...."
     vminfo ${dict[$vm]} $vm 192.168.$digit.1 ## Need some arguments such as: IP HOSTNAME DNS1 DNS2 
 done
 
