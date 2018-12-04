@@ -7,9 +7,30 @@ vms_ip=(172.17.15.2 172.17.15.3 172.17.15.5 172.17.15.6 172.17.15.8)
 		
 		### INPUT from USER ###
 clear
-read -p "What is your Seneca username: " username
-read -p "What is your FULL NAME: " fullname
-read -s -p "Type your normal password: " password && echo
+if zenity --forms --title="INFORMATION" \
+	--text="INPUT USER INFORMATION" \
+	--add-entry="Your Seneca Username" \
+	--add-entry="Your Full Name" \
+	--add-password="Enter your normal password" > var
+then
+	username=$(cut -d\| -f1 var)
+	fullname=$(cut -d\| -f2 var)
+	password=$(cut -d\| -f3 var)
+	if [ -z $username ] || [ -z $fullname ] || [ -z $password ]
+	then
+		echo
+		echo
+		echo -e "\e[31mValue is empty. Run the script and input again\e[m"
+		exit 2
+		rm -rf var
+		echo
+		echo
+	fi
+else
+echo -e "\e[31mJob cancelled\e[m"
+exit 3
+rm -rf var
+fi	
 IP=$(cat /var/named/mydb-for-* | grep ^vm1 | head -1 | awk '{print $4}')
 digit=$(cat /var/named/mydb-for-* | grep ^vm2 | head -1 | awk '{print $4}' | cut -d. -f3)
 		
