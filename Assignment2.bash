@@ -470,7 +470,7 @@ done
 
 ssh 172.17.15.8 mkdir -p /documents/shared/readonly 2> /dev/null
 ssh 172.17.15.8 chmod -R 775 /documents/shared/readonly 2> /dev/null
-ssh 172.17.15.8 chown -R root:group@$username-admin /documents/shared/readonly 2> /dev/null
+ssh 172.17.15.8 chown -R root:group$username-admin /documents/shared/readonly 2> /dev/null
 
 ssh 172.17.15.8 mkdir -p /documents/shared/readwrite 2> /dev/null
 ssh 172.17.15.8 chmod -R 777 /documents/shared/readwrite 2> /dev/null
