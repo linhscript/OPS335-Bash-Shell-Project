@@ -219,6 +219,10 @@ require
 
 ### Start CONFIGURATION ###
 
+virsh start toronto > /dev/null 2>&1
+echo -e "\e[35mTurn on AutoStart Toronto\e[m"
+virsh autostart toronto
+
 ## KINGSTON MACHINE ###
 
 # Network and hostname 
@@ -481,16 +485,57 @@ echo -e "\e[32mUsers and Folders Created \e[m"
 cat > smb.conf << EOF
 
 [global]
-workgroup = WORKGROUP
-server string = $fullname - Assignment 2
+workgroup = WORKGROUP 
+server string = $fullname-Assignment2
 encrypt passwords = yes
 smb passwd file = /etc/samba/smbpasswd
 hosts allow = 172.17.15. 127.0.0.1
+  
+[$username-1]
+comment = Assignment2
+path = /documents/private/$username-1
+public = no
+writable = yes
+printable = no
+create mask = 0765
+valid users = $username-1 $username-admin
 
-[documents]
-path = /documents
-read only = no
-valid users = $username-1 $username-2 $username-admin
+[$username-2]
+comment = Assignment2
+path = /documents/private/$username-2
+public = no
+writable = yes
+printable = no
+create mask = 0765
+valid users = $username-2 $username-admin
+
+[$username-admin]
+comment = Assignment2
+path = /documents/private/$username-admin
+public = no
+writable = yes
+printable = no
+create mask = 0765
+valid users = $username-admin
+
+[readonly]
+comment = Assignment2
+path = /documents/shared/readonly
+public = no
+writable = yes
+read list = $username-1 $username-2
+write list = $username-admin
+printable = no
+
+
+[readwrite]
+comment = Assignment2
+path = /documents/shared/readwrite
+public = no
+writable = yes
+printable = no
+create mask = 0765
+valid users = $username-1 $username-2 $username-admin 
 
 EOF
 check "scp smb.conf 172.17.15.8:/etc/samba/smb.conf " "Error when trying to copy SMB.CONF"
