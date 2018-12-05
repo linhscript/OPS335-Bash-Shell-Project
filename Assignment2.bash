@@ -170,7 +170,7 @@ function require {
 				ssh 172.17.15.100 "sed -i 's/'172.17.15.100'/'${dict[$clonevm]}'/' /etc/sysconfig/network-scripts/ifcfg-$intcloyne" #change ip
 				echo
 				echo -e "\e[32mCloning Done $clonevm\e[m"
-				ssh 172.17.15.100 init 6
+				ssh 172.17.15.100 init 6 > /dev/null 2>&1
 				fi
 			done
 				#------------------# reset cloyne machine
