@@ -59,7 +59,7 @@ do
 done
 
 
-
+ssh 172.17.15.8 chmod -R 777 /documents/shared/readonly 2> /dev/null
 
 # Overwrite SMB.CONF
 
