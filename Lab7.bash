@@ -12,7 +12,7 @@ IP=$(cat /var/named/mydb-for-* | grep ^vm1 | head -1 | awk '{print $4}')
 digit=$(cat /var/named/mydb-for-* | grep ^vm2 | head -1 | awk '{print $4}' | cut -d. -f3)
 
 domain="$username.ops"
-vms_name=(vm1 vm2 vm3)   ###-- Put the name in order --  Master Slave Other Machines
+vms_name=(vm1 vm2 $vm)   ###-- Put the name in order --  Master Slave Other Machines
 vms_ip=(192.168.$digit.2 192.168.$digit.3 192.168.$digit.4)
 		
 		#### Create Hash Table -------------------------------
@@ -202,66 +202,73 @@ make -C /var/yp/
 systemctl start ypbind
 systemctl enable ypbind
 
+#--------------VM CONFIGURATION-----------------------------
+for vm in ${!dict[@]}
+do
+    echo -e "\e[35mCONFIGURING $vm\e[m"
+    echo 
+	# Network and hostname 
+	vminfo ${dict[$vm]} $vm 192.168.$digit.1 ## Need some arguments such as: IP HOSTNAME DNS1 DNS2 
 
-## VM3 CONFIGURATION---------------------------------------------------------
-echo -e "\e[1;35mStart config VM3\e[m"
-# Network and hostname 
-vminfo ${dict[vm3]} vm3 192.168.$digit.1 ## Need some arguments such as: IP HOSTNAME DNS1 DNS2 
+	# Create user
+	echo -e "\e[1;35mCreate regular user\e[m"
+	ssh ${dict[$vm]} useradd -m $username 2> /dev/null
+	ssh ${dict[$vm]} '( echo '$username:$password' | chpasswd )'
+	echo -e "\e[32mUser Created \e[m"
 
-# Create user
-echo -e "\e[1;35mCreate regular user\e[m"
-ssh ${dict[vm3]} useradd -m $username 2> /dev/null
-ssh ${dict[vm3]} '( echo '$username:$password' | chpasswd )'
-echo -e "\e[32mUser Created \e[m"
+	# Create user test lab7
+	echo -e "\e[1;35mCreate user test lab7 - testlab7\e[m"
+	ssh ${dict[$vm]} useradd -m testlab7 2> /dev/null
+	ssh ${dict[$vm]} '( echo 'testlab7:$password' | chpasswd )'
+	echo -e "\e[32mUser testlab7 Created \e[m"
 
-# Create user test lab7
-echo -e "\e[1;35mCreate user test lab7 - testlab7\e[m"
-ssh ${dict[vm3]} useradd -m testlab7 2> /dev/null
-ssh ${dict[vm3]} '( echo 'testlab7:$password' | chpasswd )'
-echo -e "\e[32mUser testlab7 Created \e[m"
+	# Install packages
+	echo -e "\e[1;35mInstall packages\e[m"
+	check "ssh ${dict[$vm]} yum install -y ypbind ypserv" "Can not install ypbind and ypserv"
+	echo -e "\e[32mDone Installation \e[m"
 
-# Install packages
-echo -e "\e[1;35mInstall packages\e[m"
-check "ssh ${dict[vm3]} yum install -y ypbind ypserv" "Can not install ypbind and ypserv"
-echo -e "\e[32mDone Installation \e[m"
-
-# # Config SELINUX
-echo -e "\e[1;35mSELINUX CONFIG\e[m"
-ssh ${dict[vm3]} "echo -e '192.168.${digit}.1:/home	/home	nfs4	defaults	0 0' >> /etc/fstab "
-ssh ${dict[vm3]} "setsebool -P use_nfs_home_dirs 1"
-ssh ${dict[vm3]} "nisdomainname $username.ops"
-ssh ${dict[vm3]} "setenforce permissive"
+	# # Config SELINUX
+	echo -e "\e[1;35mSELINUX CONFIG\e[m"
+	ssh ${dict[$vm]} "echo -e '192.168.${digit}.1:/home	/home	nfs4	defaults	0 0' >> /etc/fstab "
+	ssh ${dict[$vm]} "setsebool -P use_nfs_home_dirs 1"
+	ssh ${dict[$vm]} "nisdomainname $username.ops"
+	ssh ${dict[$vm]} "setenforce permissive"
 
 
-# /Etc/yp.conf on client machine
-check "ssh ${dict[vm3]} grep -v -e '^domain.*' /etc/yp.conf > yp.conf" "Grep Failed on VM3"
+	# /Etc/yp.conf on client machine
+	check "ssh ${dict[$vm]} grep -v -e '^domain.*' /etc/yp.conf > yp.conf" "Grep Failed on $vm"
 cat >> yp.conf << EOF
 domain $username.ops server 192.168.$digit.1
 EOF
-check "scp yp.conf ${dict[vm3]}:/etc/yp.conf" "/etc/yp.conf failed"
+check "scp yp.conf ${dict[$vm]}:/etc/yp.conf" "/etc/yp.conf failed"
 rm -rf yp.conf
 
 
-## IPTABLES CLIENT MACHINE
-echo -e "\e[1;35mVM3 IPTABLES\e[m"
-ssh ${dict[vm3]} iptables -C INPUT -p tcp --dport 783  -j ACCEPT 2> /dev/null || ssh ${dict[vm3]} iptables -I INPUT -p tcp --dport 783 -j ACCEPT
-ssh ${dict[vm3]} iptables -C INPUT -p udp --dport 783  -j ACCEPT 2> /dev/null || ssh ${dict[vm3]} iptables -I INPUT -p udp --dport 783 -j ACCEPT
-ssh ${dict[vm3]} iptables -C INPUT -p tcp --dport 111  -j ACCEPT 2> /dev/null || ssh ${dict[vm3]} iptables -I INPUT -p tcp --dport 111 -j ACCEPT
-ssh ${dict[vm3]} iptables -C INPUT -p udp --dport 111  -j ACCEPT 2> /dev/null || ssh ${dict[vm3]} iptables -I INPUT -p udp --dport 111 -j ACCEPT
-ssh ${dict[vm3]} "iptables-save > /etc/sysconfig/iptables"
-ssh ${dict[vm3]} "service iptables save"
-ssh ${dict[vm3]} systemctl stop iptables
-ssh ${dict[vm3]} systemctl disable iptables
-ssh ${dict[vm3]} iptables -F
+	## IPTABLES CLIENT MACHINE
+	echo -e "\e[1;35m$vm IPTABLES\e[m"
+	ssh ${dict[$vm]} iptables -C INPUT -p tcp --dport 783  -j ACCEPT 2> /dev/null || ssh ${dict[$vm]} iptables -I INPUT -p tcp --dport 783 -j ACCEPT
+	ssh ${dict[$vm]} iptables -C INPUT -p udp --dport 783  -j ACCEPT 2> /dev/null || ssh ${dict[$vm]} iptables -I INPUT -p udp --dport 783 -j ACCEPT
+	ssh ${dict[$vm]} iptables -C INPUT -p tcp --dport 111  -j ACCEPT 2> /dev/null || ssh ${dict[$vm]} iptables -I INPUT -p tcp --dport 111 -j ACCEPT
+	ssh ${dict[$vm]} iptables -C INPUT -p udp --dport 111  -j ACCEPT 2> /dev/null || ssh ${dict[$vm]} iptables -I INPUT -p udp --dport 111 -j ACCEPT
+	ssh ${dict[$vm]} "iptables-save > /etc/sysconfig/iptables"
+	ssh ${dict[$vm]} "service iptables save"
+	ssh ${dict[$vm]} systemctl stop iptables
+	ssh ${dict[$vm]} systemctl disable iptables
+	ssh ${dict[$vm]} iptables -F
 
-# Config nsswitch.conf
-echo -e "\e[1;35mNSSwitch\e[m"
+	# Config nsswitch.conf
+	echo -e "\e[1;35mNSSwitch\e[m"
 
-ssh ${dict[vm3]} "sed -i 's/^passwd.*/passwd:      nis files/' /etc/nsswitch.conf"
-ssh ${dict[vm3]} "sed -i 's/^shadow.*/shadow:      nis files/' /etc/nsswitch.conf"
-ssh ${dict[vm3]} "sed -i 's/^group.*/group:      nis files/' /etc/nsswitch.conf"
+	ssh ${dict[$vm]} "sed -i 's/^passwd.*/passwd:      nis files/' /etc/nsswitch.conf"
+	ssh ${dict[$vm]} "sed -i 's/^shadow.*/shadow:      nis files/' /etc/nsswitch.conf"
+	ssh ${dict[$vm]} "sed -i 's/^group.*/group:      nis files/' /etc/nsswitch.conf"
 
-echo -e "\e[1;35mStart and Enable YPBIND Services\e[m"
-check "ssh ${dict[vm3]} systemctl start ypbind" "Can not start services on VM3"
-check "ssh ${dict[vm3]} systemctl enable ypbind" "Can not enable services on VM3"
-#ssh ${dict[vm3]} systemctl restart iptables
+	echo -e "\e[1;35mStart and Enable YPBIND Services\e[m"
+	check "ssh ${dict[$vm]} systemctl start ypbind" "Can not start YPBIND services on $vm"
+	check "ssh ${dict[$vm]} systemctl enable ypbind" "Can not enable YPBIND services on $vm"
+	#ssh ${dict[$vm]} systemctl restart iptables
+
+
+done
+
+echo -e "\e[1;32m COMPLETED\e[m"
