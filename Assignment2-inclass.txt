@@ -1,0 +1,25 @@
+1. Proof of SMTP Server Running on kingston server
+(systemctl status postfix) - Run on Kingston Server
+
+2. E-mails sent from kingston and milton servers to coburg server (user@IP_ADDR)
+()
+
+3. E-mails sent from kingston and milton servers to coburg server (user@DOMAIN_NAME)
+
+
+#------------------- DO THESE ON WINDOWS MACHINE (HAMILTON) -----------------
+
+
+4. yoursenecaid-1 and yoursenecaid-2 has read/write access 
+	
+	Windows + R: \\172.17.15.8\yoursenecaid-1 => Enter => Login with 
+
+
+5. yoursenecaid-admin has read/write access to every directory
+
+
+6. All accounts have read' access to the read-only directory
+(but only yoursenecaid-admin has write access)
+
+
+7. All accounts can both read and write to the readwrite directory.
