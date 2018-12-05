@@ -46,10 +46,20 @@ function check() {
 
 }
 # Autostart Toronto
-virsh start milton > /dev/null 2>&1
 virsh start toronto > /dev/null 2>&1
 echo -e "\e[35mTurn on AutoStart Toronto\e[m"
 virsh autostart toronto
+
+# Start Milton
+virsh start milton > /dev/null 2>&1
+while ! eval "ping 172.17.15.8 -c 5 > /dev/null" 
+do
+	echo "Milton machine is starting"
+		sleep 3
+done
+
+
+
 
 # Overwrite SMB.CONF
 
