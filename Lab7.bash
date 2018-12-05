@@ -12,7 +12,7 @@ IP=$(cat /var/named/mydb-for-* | grep ^vm1 | head -1 | awk '{print $4}')
 digit=$(cat /var/named/mydb-for-* | grep ^vm2 | head -1 | awk '{print $4}' | cut -d. -f3)
 
 domain="$username.ops"
-vms_name=(vm1 vm2 $vm)   ###-- Put the name in order --  Master Slave Other Machines
+vms_name=(vm1 vm2 vm3)   ###-- Put the name in order --  Master Slave Other Machines
 vms_ip=(192.168.$digit.2 192.168.$digit.3 192.168.$digit.4)
 		
 		#### Create Hash Table -------------------------------
