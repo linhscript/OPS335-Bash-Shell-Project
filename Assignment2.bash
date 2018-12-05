@@ -183,7 +183,7 @@ function require {
 				done
 				sleep 5
 				ssh 172.17.15.100 "sed -i 's/.*HW.*/HWADDR\='${oldmac}'/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne"
-				ssh 172.17.15.100 init 6
+				ssh 172.17.15.100 init 6 > /dev/null 2>&1
 		fi
 	}		
 	clone-machine
