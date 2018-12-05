@@ -44,7 +44,7 @@ function check() {
 	   		exit 1
 	fi	
 
-
+}
 # Autostart Toronto
 virsh start milton > /dev/null 2>&1
 virsh start toronto > /dev/null 2>&1
