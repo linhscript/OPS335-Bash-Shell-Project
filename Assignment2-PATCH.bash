@@ -51,25 +51,6 @@ virsh start toronto > /dev/null 2>&1
 echo -e "\e[35mTurn on AutoStart Toronto\e[m"
 virsh autostart toronto
 
-# Remove /document
-ssh 172.17.15.8 "rm -rf /documents"
-
-# Create SAMBA users,folders,groups,add user to group, give permissons
-miltonusers="$username-1 $username-2 $username-admin"
-for users in $miltonusers
-do
-	# Create regular user
-	echo -e "\e[1;35mCreate user $users\e[m"
-	ssh 172.17.15.8 useradd -m $users 2> /dev/null
-	ssh 172.17.15.8 '( echo '$users:$password' | chpasswd )'
-
-	ssh 172.17.15.8 mkdir -p /documents/private/$users 2> /dev/null
-done
-ssh 172.17.15.8 mkdir -p /documents/shared/readonly 2> /dev/null
-ssh 172.17.15.8 mkdir -p /documents/shared/readwrite 2> /dev/null
-# Restart service
-ssh 172.17.15.8 systemctl restart smb
-
 # Overwrite SMB.CONF
 
 cat > smb.conf << EOF
