@@ -1,25 +1,47 @@
+##### Assignment 2
+
 1. Proof of SMTP Server Running on kingston server
 (systemctl status postfix) - Run on Kingston Server
 
-2. E-mails sent from kingston and milton servers to coburg server (user@IP_ADDR)
-()
 
 3. E-mails sent from kingston and milton servers to coburg server (user@DOMAIN_NAME)
+a. In Kingston Server : mail -s "Test from Kingston" aipatel5@towns.ontario.ops
+b. In Milton Server : mail -s "Test from Kingston" aipatel5@towns.ontario.ops
 
+c. Open Thunderbird to get all these messages aboe
 
 #------------------- DO THESE ON WINDOWS MACHINE (HAMILTON) -----------------
 
 
 4. yoursenecaid-1 and yoursenecaid-2 has read/write access 
 	
-	Windows + R: \\172.17.15.8\yoursenecaid-1 => Enter => Login with 
+	Windows + R: \\172.17.15.8 => Enter => Login with aipatel5-1 => Create folder in aipatel-1, readonly, readwrite
+
+	Log out Window from current account => Windows + R: \\172.17.15.8 => Enter => Login with aipatel5-admin => Create folder in aipatel-1, readonly, readwrite
 
 
-5. yoursenecaid-admin has read/write access to every directory
+--------------------- Assignment 1-part 1
+
+1. Open Virtual Manager => Click Connection Detail => Click network 335assgin
+
+2. From hostmachine: ping 172.17.15.100
+
+3. From hostmachine: ssh 172.17.15.100
+
+4. From cloyne machine: ping 8.8.8.8
+
+5. From cloyne machine: ssh aipatel5@matrix.senecac.on.ca
 
 
-6. All accounts have read' access to the read-only directory
-(but only yoursenecaid-admin has write access)
+-------------------- Assignment 2 - part 2
 
+1. Open virtual Manager => Show there are 2 machines name toronto and ottawa
 
-7. All accounts can both read and write to the readwrite directory.
+2. From toronto and ottawa machine: host vm1.aipatel5.ops
+
+3. From toronto and ottawa machine: host kingston.towns.ontario.ops
+ottawa.towns.ontario.ops
+
+4. From toronto and ottawa machine: nslookup 172.17.15.5
+
+5. Do zone transfer: Go to toronto machine => vi /var/named/mydb-for-towns.ontario.ops => Add record at the end of the file => Change the serial number => Restart named service (systemctl restart named) => Go to ottawa machine => vi /var/named/slave/mydb-for-towns.ontario.ops
