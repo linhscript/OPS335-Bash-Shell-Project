@@ -1,23 +1,4 @@
-##### Assignment 2
 
-1. Proof of SMTP Server Running on kingston server
-(systemctl status postfix) - Run on Kingston Server
-
-
-3. E-mails sent from kingston and milton servers to coburg server (user@DOMAIN_NAME)
-a. In Kingston Server : mail -s "Test from Kingston" aipatel5@towns.ontario.ops
-b. In Milton Server : mail -s "Test from Kingston" aipatel5@towns.ontario.ops
-
-c. Open Thunderbird to get all these messages aboe
-
-#------------------- DO THESE ON WINDOWS MACHINE (HAMILTON) -----------------
-
-
-4. yoursenecaid-1 and yoursenecaid-2 has read/write access 
-	
-	Windows + R: \\172.17.15.8 => Enter => Login with aipatel5-1 => Create folder in aipatel-1, readonly, readwrite
-
-	Log out Window from current account => Windows + R: \\172.17.15.8 => Enter => Login with aipatel5-admin => Create folder in aipatel-1, readonly, readwrite
 
 
 --------------------- Assignment 1-part 1
@@ -44,4 +25,24 @@ ottawa.towns.ontario.ops
 
 4. From toronto and ottawa machine: nslookup 172.17.15.5
 
-5. Do zone transfer: Go to toronto machine => vi /var/named/mydb-for-towns.ontario.ops => Add record at the end of the file => Change the serial number => Restart named service (systemctl restart named) => Go to ottawa machine => vi /var/named/slave/mydb-for-towns.ontario.ops
+5. Do zone transfer: Go to toronto machine => vi /var/named/mydb-for-towns.ontario.ops => Add record at the end of the file => Change the serial number => Restart named service (systemctl restart named) => Go to ottawa machine => vi /var/named/slaves/mydb-for-towns.ontario.ops => You will see the new record which was just added in toronto machine
+
+----------------------------Assignment 2----------------------------
+##### 
+
+1. Proof of SMTP Server Running on kingston server
+(systemctl status postfix) - Run on Kingston Server
+
+
+3. E-mails sent from kingston and milton servers to coburg server (user@DOMAIN_NAME)
+a. In Kingston Server : mail -s "Test from Kingston" aipatel5@towns.ontario.ops
+b. In Milton Server : mail -s "Test from Kingston" aipatel5@towns.ontario.ops
+
+c. Open Thunderbird to get all these messages aboe
+
+#------------------- DO THESE ON WINDOWS MACHINE (HAMILTON) -----------------
+
+
+	Windows + R: \\172.17.15.8 => Enter => Login with aipatel5-1 => Create folder in aipatel-1, readonly (it will be showing on the screen that you dont have permission to create), readwrite
+
+	Log out Window from current account => Windows + R: \\172.17.15.8 => Enter => Login with aipatel5-admin => Create folder in aipatel-1, readonly, readwrite (you have all permission)
