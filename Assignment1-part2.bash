@@ -10,8 +10,8 @@ clear
 read -p "What is your Seneca username: " username
 read -p "What is your FULL NAME: " fullname
 read -s -p "Type your normal password: " password && echo
-IP=$(cat /var/named/mydb-for-* | grep ^vm1 | head -1 | awk '{print $4}')
-digit=$(cat /var/named/mydb-for-* | grep ^vm2 | head -1 | awk '{print $4}' | cut -d. -f3)
+read -p "What is your IP Address of VM1: " IP
+digit=$( echo "$IP" | awk -F. '{print $3}' )
 		
 		#### Create Hash Table -------------------------------
 		
