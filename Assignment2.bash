@@ -139,6 +139,12 @@ function require {
 			rm -rf ipconf.txt > /dev/null
 			sleep 2
 			echo -e "\e[32mCloyne machine info has been collected\e[m"
+			ssh 172.17.15.100 init 6 > /dev/null 2>&1
+			while ! eval "ping 172.17.15.100 -c 5 > /dev/null" 
+			do
+				echo "Clonning machine is processing"
+				sleep 3
+			done
 			virsh suspend cloyne			
 		
 			#---------------------------# Start cloning
