@@ -185,27 +185,18 @@ function require {
 	check "ssh ${dict[$ssh_vm]} yum update -y" "Can not YUM UPDATE from $ssh_vm"
 	done
 	
-	### 5.Checking jobs done from Assignment 1 -------------------------
 
-	#check "ssh ${vms_ip[0]} host ${vms_name[0]}.$domain > /dev/null 2>&1" "Name service in ${vms_name[0]} is not working"
-	
 }
 require
 
 
-####FIX FROM HERE -------------------------
+
 
 ##### Check Function
 list_vms="toronto ottawa cloyne"
 vms="172.17.15.2 172.17.15.3 172.17.15.100"
 
 
-### Check if you are root ###
-if [ `id -u` -ne 0 ]
-then
-	echo "Must run this script by root" >&2
-	exit 1 
-fi
 
 ### Check vms are online: Toronto, Ottawa
 echo "Checking VMs status"
@@ -225,30 +216,6 @@ systemctl restart named
 echo -e "--------\e[32mRestarted Done \e[0m----------"
 
 ############################# VM CONFIGURATION ####################
-
-
-
-###--- Checking if can ssh to Toronto or Ottawa or Cloyne
-echo "-------Checking SSH TORONTO---------"
-check "ssh -o ConnectTimeout=5 root@172.17.15.2 ls > /dev/null" "Can not SSH to TORONTO, check and run the script again "
-
-echo "-------Checking SSH OTTAWA---------"
-check "ssh -o ConnectTimeout=5 root@172.17.15.3 ls > /dev/null " "Can not SSH to TORONTO, check and run the script again  "
-
-echo "-------Checking SSH CLOYNE---------"
-check "ssh -o ConnectTimeout=5 root@172.17.15.100 ls > /dev/null" "Can not SSH to TORONTO, check and run the script again  "
-
-
-### Check if vms can ping google.ca or not, Create User
-
-echo "-------Check internet connection------"
-for b in $vms
-do
-	ssh root@$b useradd -m $username 2> /dev/null
-	check "ssh root@$b 'echo 'nameserver 8.8.8.8' >> /etc/resolv.conf '" "Can not copy 8.8.8.8 to your /etc/resolv.conf"
-	check "ssh root@$b ping -c 3 google.ca > /dev/null" "Can not ping GOOGLE.CA from $b, check internet connection then run the script again"
-	check "ssh root@$b test -f /etc/sysconfig/network-scripts/ifcfg-eth0 > /dev/null" "You dont have eth0 interface in $b vm"
-done
 
 
 ### Install bind package
