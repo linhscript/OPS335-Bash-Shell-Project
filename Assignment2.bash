@@ -145,6 +145,7 @@ function require {
 				echo "Clonning machine is processing"
 				sleep 3
 			done
+			sleep 3
 			virsh suspend cloyne			
 		
 			#---------------------------# Start cloning
