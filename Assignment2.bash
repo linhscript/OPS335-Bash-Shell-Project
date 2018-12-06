@@ -111,6 +111,7 @@ function require {
 				count=1
 			fi
 		done
+		check "yum install virt* -y" "Can not install packages. Check INTERNET connection"
 		#----------------------------------------# Setup cloyne to be cloneable
 		if [ $count -gt 0 ]
 		then
@@ -209,6 +210,7 @@ function require {
 	echo -e "\e[32mRestarted Done \e[m"
 
 	check "ping -c 3 google.ca > /dev/null" "Host machine can not ping GOOGLE.CA, check INTERNET connection then run the script again"
+
 		
 	for ssh_vm in ${!dict[@]} ## -- Checking VMS -- ## KEY
 	do
@@ -612,7 +614,7 @@ cat > /root/Assignment2-information.txt << EOF
 
 + Users for Samba: $username-1 $username-2 $username-admin
 + Password to login: $password
-+ Path: 172.17.15.8/documents
++ Path: 172.17.15.8
 
 ## All the above information will be stored in  /root/Assignment2-information.txt ##
 ------------------------------------------------------------
