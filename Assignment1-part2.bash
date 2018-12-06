@@ -539,6 +539,10 @@ do
 	check "mkdir -p /backup/incremental/cloning-source/$f > /dev/null " "Can not create folders"
 done
 
+virsh start toronto > /dev/null 2>&1
+echo -e "\e[35mTurn on AutoStart Toronto\e[m"
+virsh autostart toronto
+
 ### Im so lazy to find the shorter way
 ### Crontab
 crontab -l | { cat; echo "0 * * * * rsync -avz 172.17.15.2:/etc /backup/incremental/cloning-source/toronto"; } | crontab -
