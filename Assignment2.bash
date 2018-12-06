@@ -471,7 +471,7 @@ EOF
 	ssh 172.17.15.8 mkdir -p /documents/private/$users 2> /dev/null
 	ssh 172.17.15.8 groupadd group$users 2>/dev/null	
 	ssh 172.17.15.8 chown -R root:group$users /documents/private/$users 2> /dev/null
-	ssh 172.17.15.8 chmod -R 770 /documents/private/$users 2> /dev/null
+	ssh 172.17.15.8 chmod -R 775 /documents/private/$users 2> /dev/null
 done
 
 for b in $miltonusers
@@ -480,7 +480,7 @@ do
 done
 
 ssh 172.17.15.8 mkdir -p /documents/shared/readonly 2> /dev/null
-ssh 172.17.15.8 chmod -R 777 /documents/shared/readonly 2> /dev/null
+ssh 172.17.15.8 chmod -R 775 /documents/shared/readonly 2> /dev/null
 ssh 172.17.15.8 chown -R root:group$username-admin /documents/shared/readonly 2> /dev/null
 
 ssh 172.17.15.8 mkdir -p /documents/shared/readwrite 2> /dev/null
