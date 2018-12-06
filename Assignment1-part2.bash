@@ -544,9 +544,9 @@ done
 crontab -l | { cat; echo "0 * * * * rsync -avz 172.17.15.2:/etc /backup/incremental/cloning-source/toronto"; } | crontab -
 crontab -l | { cat; echo "0 * * * * rsync -avz 172.17.15.3:/etc /backup/incremental/cloning-source/ottawa"; } | crontab -
 crontab -l | { cat; echo "0 * * * * rsync -avz 172.17.15.100:/etc /backup/incremental/cloning-source/cloyne"; } | crontab -
-rsync -avz 172.17.15.2:/etc /backup/incremental/cloning-source/toronto >> test.txt
-rsync -avz 172.17.15.3:/etc /backup/incremental/cloning-source/ottawa >> test.txt
-rsync -avz 172.17.15.100:/etc /backup/incremental/cloning-source/cloyne >> test.txt
+rsync -avz 172.17.15.2:/etc /backup/incremental/cloning-source/toronto > /dev/null
+rsync -avz 172.17.15.3:/etc /backup/incremental/cloning-source/ottawa > /dev/null
+rsync -avz 172.17.15.100:/etc /backup/incremental/cloning-source/cloyne > /dev/null
 #### Reboot system
 
 echo "Shutting down all VMs in progress"
