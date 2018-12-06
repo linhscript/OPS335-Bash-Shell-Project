@@ -563,7 +563,7 @@ ssh 172.17.15.8 systemctl restart smb
 ## --------MILTON DONE------------ ####
 ## TORONTO MACHINE
 # MX Record
-ssh 172.17.15.2 "sed -i 's/.*MX.*/towns.ontario.ops. IN MX 10 coburg.towns.ontario.ops.\ntown.ontario.ops. IN MX 20 kingston.towns.ontario.ops./' /var/named/mydb-for-towns.ontario.ops "
+ssh 172.17.15.2 "sed -i 's/.*MX.*/towns.ontario.ops. IN MX 10 coburg.towns.ontario.ops.\ntowns.ontario.ops. IN MX 20 kingston.towns.ontario.ops./' /var/named/mydb-for-towns.ontario.ops "
 ssh 172.17.15.2 "systemctl restart named"
 
 echo
