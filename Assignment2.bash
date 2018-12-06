@@ -566,6 +566,11 @@ ssh 172.17.15.8 systemctl restart smb
 ssh 172.17.15.2 "sed -i 's/.*MX.*/towns.ontario.ops. IN MX 10 coburg.towns.ontario.ops.\ntowns.ontario.ops. IN MX 20 kingston.towns.ontario.ops./' /var/named/mydb-for-towns.ontario.ops "
 ssh 172.17.15.2 "systemctl restart named"
 
+## Config Postfix permission for Toronto
+
+ssh 172.17.15.2 "restorecon /etc/resolv.conf"
+ssh 172.17.15.2 "restorecon -v -R /var/spool/postfix/"
+
 echo
 echo
 echo -e "\e[1;32m-------------------LAB COMPLETED--------------\e[m"
