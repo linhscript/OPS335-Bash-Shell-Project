@@ -1,9 +1,10 @@
 
 
 
---------------------- Assignment 1-part 1
+--------------------- Assignment 1-part 1: 
+0. type : su -
 
-1. Open Virtual Manager => Click Connection Detail => Click network 335assgin
+1. Open Virtual Manager => Click Connection Detail => Click network 335assgin => Show there is a network 335assign
 
 2. From hostmachine: ping 172.17.15.100
 
@@ -11,14 +12,14 @@
 
 4. From cloyne machine: ping 8.8.8.8
 
-5. From cloyne machine: ssh aipatel5@matrix.senecac.on.ca
+5. From cloyne machine: ssh mcdipaling@matrix.senecac.on.ca
 
 
 -------------------- Assignment 2 - part 2
 
 1. Open virtual Manager => Show there are 2 machines name toronto and ottawa
 
-2. From toronto and ottawa machine: host vm1.aipatel5.ops
+2. From toronto and ottawa machine: host vm1.mcdipaling.ops
 
 3. From toronto and ottawa machine: host kingston.towns.ontario.ops
 ottawa.towns.ontario.ops
@@ -35,14 +36,14 @@ ottawa.towns.ontario.ops
 
 
 3. E-mails sent from kingston and milton servers to coburg server (user@DOMAIN_NAME)
-a. In Kingston Server : mail -s "Test from Kingston" aipatel5@towns.ontario.ops
-b. In Milton Server : mail -s "Test from Kingston" aipatel5@towns.ontario.ops
+a. In Kingston Server : mail -s "Test from Kingston" mcdipaling@towns.ontario.ops
+b. In Milton Server : mail -s "Test from Kingston" mcdipaling@towns.ontario.ops
 
-c. Open Thunderbird to get all these messages aboe
+c. Open Thunderbird to get all these messages
 
 #------------------- DO THESE ON WINDOWS MACHINE (HAMILTON) -----------------
 
 
-	Windows + R: \\172.17.15.8 => Enter => Login with aipatel5-1 => Create folder in aipatel-1, readonly (it will be showing on the screen that you dont have permission to create), readwrite
+	Windows + R: \\172.17.15.8 => Enter => Login with mcdipaling-1 => Create folder in mcdipaling-1, readonly (it will be showing on the screen that you dont have permission to create), readwrite
 
-	Log out Window from current account => Windows + R: \\172.17.15.8 => Enter => Login with aipatel5-admin => Create folder in aipatel-1, readonly, readwrite (you have all permission)
+	Log out Window from current account => Windows + R: \\172.17.15.8 => Enter => Login with mcdipaling-admin => Create folder in mcdipaling-1, readonly, readwrite (you have all permission)

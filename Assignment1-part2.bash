@@ -551,20 +551,7 @@ crontab -l | { cat; echo "0 * * * * rsync -avz 172.17.15.100:/etc /backup/increm
 rsync -avz 172.17.15.2:/etc /backup/incremental/cloning-source/toronto > /dev/null
 rsync -avz 172.17.15.3:/etc /backup/incremental/cloning-source/ottawa > /dev/null
 rsync -avz 172.17.15.100:/etc /backup/incremental/cloning-source/cloyne > /dev/null
-#### Reboot system
 
-echo "Shutting down all VMs in progress"
-for e in $list_vms
-do 
-	virsh shutdown $e
-	while [ "$(virsh domstate $e | head -1 | grep ^running$ )" == "running" ]
-	do
-  		echo "Wait until vm $e is down"
-        sleep 1
-        
-	done
-
-done
 ####Reset iptables on C7Host
 #echo "Iptables is restarting"
 #systemctl restart libvirtd
