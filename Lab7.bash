@@ -189,10 +189,10 @@ then
 fi
 
 # Create user test lab7
-echo -e "\e[1;35mCreate user test lab7 - testlab7\e[m"
-useradd -m testlab7 2> /dev/null
-echo testlab7:$password | chpasswd
-echo -e "\e[32mUser testlab7 Created \e[m"
+echo -e "\e[1;35mCreate user test - test\e[m"
+useradd -m test 2> /dev/null
+echo test:$password | chpasswd
+echo -e "\e[32mUser test Created \e[m"
 
 # Make config
 
