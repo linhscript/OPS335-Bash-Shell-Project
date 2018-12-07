@@ -155,7 +155,7 @@ check "yum install ypserv ypbind -y"
 grep -v -e ".*NISDOMAIN.*" -e ".*YPSERV.*" /etc/sysconfig/network > network
 cat >> network << EOF
 NISDOMAIN="$username.ops"
-YPSERV_ARGS="-p 783"" >
+YPSERV_ARGS="-p 783"
 EOF
 check "scp network /etc/sysconfig/network" "/etc/sysconfig/network failed"
 rm -rf network
