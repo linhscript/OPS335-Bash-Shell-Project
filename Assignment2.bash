@@ -5,7 +5,8 @@ domain="towns.ontario.ops"
 vms_name=(toronto ottawa kingston coburg milton)   ###-- Put the name in order --  Master Slave Other Machines
 vms_ip=(172.17.15.2 172.17.15.3 172.17.15.5 172.17.15.6 172.17.15.8)	
 		
-		### INPUT from USER ###
+################ INPUT from USER ########################
+
 clear
 if zenity --forms --title="INFORMATION" \
 	--text="INPUT USER INFORMATION" \
@@ -31,18 +32,28 @@ echo -e "\e[31mJob cancelled\e[m"
 exit 3
 rm -rf var
 fi	
+################ DONE - INPUT from USER ########################
+
+
+################# GRAB DIGITS FROM IP #########################
 IP=$(cat /var/named/mydb-for-* | grep ^vm1 | head -1 | awk '{print $4}')
 digit=$(cat /var/named/mydb-for-* | grep ^vm2 | head -1 | awk '{print $4}' | cut -d. -f3)
 		
-		#### Create Hash Table -------------------------------
+
+################### Create Hash Table ######################
 		
 for (( i=0; i<${#vms_name[@]};i++ ))
 do
 	declare -A dict
 	dict+=(["${vms_name[$i]}"]="${vms_ip[$i]}")
 done
+
+
 ############### CHECKING ALL THE REQUIREMENT BEFORE RUNNING THE SCRIPT ############################
 function require {
+
+	################## CHECKING FUNCTION #################
+
 	function check() {
 		if eval $1
 		then
@@ -59,8 +70,11 @@ function require {
 	     		exit 1
 		fi	
 	}
-		
-		### 1.Run script by Root ---------------------------------------------
+	################# DONE - CHECKING FUNTION ###################	
+
+
+
+	########## Run script by Root ##################
 
 		if [ `id -u` -ne 0 ]
 		then
@@ -68,7 +82,7 @@ function require {
 			exit 2
 		fi
 
-		### 2.Backing up before runnning the script ------------------
+	########## Backing up before runnning the script ############
 
 		echo -e "\e[1;31m--------WARNING----------"
 		echo -e "\e[1mBackup your virtual machine to run this script \e[0m"
@@ -95,9 +109,40 @@ function require {
 			done
 		fi
 		
+	######## CHECKING VMS STATUS  ################################
+		echo -e "\e[1;35mChecking VMs status\e[m"
+		for vm in ${!dict[@]}
+		do 
+			if ! virsh list | grep -iqs $vm
+			then
+				virsh start $vm > /dev/null 2>&1
+				while ! eval "ping ${dict[$vm]} -c 5 > /dev/null" 
+				do
+					echo -e "\e[1;34mMachine $vm is turning on \e[0m" >&2
+					sleep 3
+				done
+			fi
+		done
+	
+	################# SSH and Pinging and Update Check #########################
+	echo -e "\e[1;35mRestarting Named\e[m"
+	systemctl restart named
+	echo -e "\e[32mRestarted Done \e[m"
+
+	check "ping -c 3 google.ca > /dev/null" "Host machine can not ping GOOGLE.CA, check INTERNET connection then run the script again"
+
+		
+	for ssh_vm in ${!dict[@]} ## -- Checking VMS -- ## KEY
+	do
+	check "ssh -o ConnectTimeout=5 -oStrictHostKeyChecking=no ${dict[$ssh_vm]} ls > /dev/null" "Can not SSH to $ssh_vm, check and run the script again "
+	check "ssh ${dict[$ssh_vm]} ping -c 3 google.ca > /dev/null" "Can not ping GOOGLE.CA from $ssh_vm, check internet connection then run the script again"
+	check "ssh ${dict[$ssh_vm]} yum update -y" "Can not YUM UPDATE from $ssh_vm"
+	done
 
 
-		### 3.Checking VMs need to be clone and status ----------------------------------
+
+	########### CLONING VMS FUNTION START ####################
+
 	function clone-machine {
 		echo -e "\e[1;35mChecking clone machine\e[m"
 		count=0
@@ -111,7 +156,7 @@ function require {
 				count=1
 			fi
 		done
-		check "yum install virt* -y" "Can not install packages. Check INTERNET connection"
+		check "yum install virt-clone" "Can not install packages. Check INTERNET connection"
 		#----------------------------------------# Setup cloyne to be cloneable
 		if [ $count -gt 0 ]
 		then
@@ -189,35 +234,11 @@ function require {
 	}		
 	clone-machine
 
-			########################################
-		echo -e "\e[1;35mChecking VMs status\e[m"
-		for vm in ${!dict[@]}
-		do 
-			if ! virsh list | grep -iqs $vm
-			then
-				virsh start $vm > /dev/null 2>&1
-				while ! eval "ping ${dict[$vm]} -c 5 > /dev/null" 
-				do
-					echo -e "\e[1;34mMachine $vm is turning on \e[0m" >&2
-					sleep 3
-				done
-			fi
-		done
-	
-	### 4.SSH and Pinging and Update Check ------------------------------------
-	echo -e "\e[1;35mRestarting Named\e[m"
-	systemctl restart named
-	echo -e "\e[32mRestarted Done \e[m"
+	################# DONE - CLONING FUNCTION ###################
 
-	check "ping -c 3 google.ca > /dev/null" "Host machine can not ping GOOGLE.CA, check INTERNET connection then run the script again"
 
-		
-	for ssh_vm in ${!dict[@]} ## -- Checking VMS -- ## KEY
-	do
-	check "ssh -o ConnectTimeout=5 -oStrictHostKeyChecking=no ${dict[$ssh_vm]} ls > /dev/null" "Can not SSH to $ssh_vm, check and run the script again "
-	check "ssh ${dict[$ssh_vm]} ping -c 3 google.ca > /dev/null" "Can not ping GOOGLE.CA from $ssh_vm, check internet connection then run the script again"
-	check "ssh ${dict[$ssh_vm]} yum update -y" "Can not YUM UPDATE from $ssh_vm"
-	done
+
+
 	
 	### 5.Checking jobs done from Assignment 1 -------------------------
 
