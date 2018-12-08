@@ -64,7 +64,6 @@ function require {
 	     		echo -e "\e[0;31mWARNING\e[m"
 	     		echo
 	     		echo
-	     		zenity --error --title="An Error Occurred" --text="$2"
 	     		echo $2
 	     		echo
 	     		exit 1
@@ -151,30 +150,30 @@ function require {
 		do 
 			if ! virsh list --all | grep -iqs $vm
 			then
-				echo "$vm need to be created"
+				echo 
+				echo
+				echo -e "\e[1;31m$vm need to be created\e[m"
 				echo
 				echo
 				count=1
 			fi
 		done
 		check "yum install virt-clone" "Can not install packages. Check INTERNET connection"
-		#----------------------------------------# Setup cloyne to be cloneable
+		
+
 		if [ $count -gt 0 ]
 		then
-			echo -e "\e[35mStart cloning machines\e[m"
 			echo
-			echo -e "\e[1;32mCloning in progress...\e[m"
+			echo -e "\e[1;32m###### CLONING MACHINES IS PROCESSING... #######\e[m"
+			echo
 			check "virsh start cloyne 2> /dev/null" "Can not start cloyne machine"
-			while ! eval "ping 172.17.15.100 -c 5 > /dev/null" 
-			do
-				echo "Cloyne machine is starting"
-				sleep 3
-			done
-			sleep 5
-			## Set clone-machine configuration before cloning
-			check "ssh -o ConnectTimeout=8 172.17.15.100 ls > /dev/null" "Can not SSH to Cloyne, check and run the script again"
+
+			############# Set up clone-machine configuration before cloning
+			check "ssh -o ConnectTimeout=5 172.17.15.100 ls > /dev/null" "Can not SSH to Cloyne, check and run the script again"
 			intcloyne=$(ssh 172.17.15.100 '( ip ad | grep -B 2 172.17.15 | head -1 | cut -d" " -f2 | cut -d: -f1 )' )  #### grab interface infor (some one has ens3)
 			maccloyne=$(ssh 172.17.15.100 grep ".*HWADDR.*" /etc/sysconfig/network-scripts/ifcfg-$intcloyne) #### grab mac address
+			
+			############# INTERFACES COLLECTING
 			check "ssh 172.17.15.100 grep -v -e '.*DNS.*' -e 'DOMAIN.*' -e 'DEVICE.*' /etc/sysconfig/network-scripts/ifcfg-$intcloyne > ipconf.txt" "File or directory not exist"
 			echo "DNS1="172.17.15.2"" >> ipconf.txt
 			echo "DNS2="172.17.15.3"" >> ipconf.txt
@@ -185,8 +184,10 @@ function require {
 			check "scp ipconf.txt 172.17.15.100:/etc/sysconfig/network-scripts/ifcfg-$intcloyne > /dev/null" "Can not copy ipconf to Cloyne"
 			rm -rf ipconf.txt > /dev/null
 			sleep 2
+			echo
 			echo -e "\e[32mCloyne machine info has been collected\e[m"
 			ssh 172.17.15.100 init 6 > /dev/null 2>&1
+
 			while ! eval "ping 172.17.15.100 -c 5 > /dev/null" 
 			do
 				echo "Clonning machine is processing"
@@ -195,13 +196,15 @@ function require {
 			sleep 3
 			virsh suspend cloyne			
 		
-			#---------------------------# Start cloning
+			############# CLONING PROGRESS BEGIN #####
+
 			for clonevm in ${!dict[@]} # Key (name vm)
 			do 
 				if ! virsh list --all | grep -iqs $clonevm
 				then
 					echo -e "\e[1;35mCloning $clonevm \e[m"
 					virt-clone --auto-clone -o cloyne --name $clonevm
+
 				#-----Turn on cloned vm without turning on cloyne machine
 				virsh start $clonevm
 				while ! eval "ping 172.17.15.100 -c 5 > /dev/null" 
@@ -220,6 +223,8 @@ function require {
 				ssh 172.17.15.100 init 6 > /dev/null 2>&1
 				fi
 			done
+
+				echo -e "\e[35mRESET CLOYNE MACHINE TO DEFAULT\e[m"
 				#------------------# reset cloyne machine
 				oldmac=$(virsh dumpxml cloyne | grep "mac address" | cut -d\' -f2)
 				virsh resume cloyne > /dev/null 2>&1
