@@ -574,19 +574,12 @@ ssh 172.17.15.2 "restorecon -v -R /var/spool/postfix/"
 #### TORONTO DONE --------------------
 
 ## CRONTAB
-crontab -l | { cat; echo "0 * * * * rsync -avz 172.17.15.2:/etc /backup/incremental/cloning-source/toronto"; } | crontab -
-crontab -l | { cat; echo "0 * * * * rsync -avz 172.17.15.3:/etc /backup/incremental/cloning-source/ottawa"; } | crontab -
-crontab -l | { cat; echo "0 * * * * rsync -avz 172.17.15.100:/etc /backup/incremental/cloning-source/cloyne"; } | crontab -
-crontab -l | { cat; echo "0 * * * * rsync -avz 172.17.15.5:/etc /backup/incremental/cloning-source/kingston"; } | crontab -
-crontab -l | { cat; echo "0 * * * * rsync -avz 172.17.15.6:/etc /backup/incremental/cloning-source/coburg"; } | crontab -
-crontab -l | { cat; echo "0 * * * * rsync -avz 172.17.15.8:/etc /backup/incremental/cloning-source/milton"; } | crontab -
-rsync -avz 172.17.15.2:/etc /backup/incremental/cloning-source/toronto 
-rsync -avz 172.17.15.3:/etc /backup/incremental/cloning-source/ottawa 
-rsync -avz 172.17.15.100:/etc /backup/incremental/cloning-source/cloyne 
-rsync -avz 172.17.15.5:/etc /backup/incremental/cloning-source/kingston 
-rsync -avz 172.17.15.6:/etc /backup/incremental/cloning-source/coburg 
-rsync -avz 172.17.15.8:/etc /backup/incremental/cloning-source/milton 
-
+for crontab_vm in ${!dict[@]} ## -- Checking VMS -- ## KEY
+do
+mkdir -p /backup/incremental/cloning-source/$crontab_vm
+crontab -l | { cat; echo "0 * * * * rsync -avz ${dict[$crontab_vm]}:/etc /backup/incremental/cloning-source/$crontab_vm"; } | crontab -
+rsync -avz ${dict[$crontab_vm]}:/etc /backup/incremental/cloning-source/$crontab_vm 
+done
 
 
 echo
