@@ -109,7 +109,7 @@ function require {
 			done
 		fi
 		
-	######## CHECKING VMS STATUS  ################################
+	######## CHECKING VMS STATUS  ################################ 
 		echo -e "\e[1;35mChecking VMs status\e[m"
 		for vm in ${!dict[@]}
 		do 
@@ -125,6 +125,7 @@ function require {
 		done
 	
 	################# SSH and Pinging and Update Check #########################
+
 	echo -e "\e[1;35mRestarting Named\e[m"
 	systemctl restart named
 	echo -e "\e[32mRestarted Done \e[m"
@@ -163,7 +164,7 @@ function require {
 			echo -e "\e[35mStart cloning machines\e[m"
 			echo
 			echo -e "\e[1;32mCloning in progress...\e[m"
-			virsh start cloyne 2> /dev/null
+			check "virsh start cloyne 2> /dev/null" "Can not start cloyne machine"
 			while ! eval "ping 172.17.15.100 -c 5 > /dev/null" 
 			do
 				echo "Cloyne machine is starting"
