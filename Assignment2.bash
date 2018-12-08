@@ -261,17 +261,6 @@ virsh autostart toronto
 
 ## KINGSTON MACHINE ###
 
-# Network and hostname 
-intkingston=$( ssh 172.17.15.5 '( ip ad | grep -B 2 172.17.15 | head -1 | cut -d" " -f2 | cut -d: -f1 )' )
-ssh 172.17.15.5 "echo kingston.towns.ontario.ops > /etc/hostname"
-check "ssh 172.17.15.5 grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-$intkingston > ipconf.txt" "File or directory not exist"
-echo "DNS1="172.17.15.2"" >> ipconf.txt
-echo "DNS2="172.17.15.3"" >> ipconf.txt
-echo "PEERDNS=no" >> ipconf.txt
-echo "DOMAIN=towns.ontario.ops" >> ipconf.txt
-check "scp ipconf.txt 172.17.15.5:/etc/sysconfig/network-scripts/ifcfg-$intkingston > /dev/null" "Can not copy ipconf to KINGSTON"
-rm -rf ipconf.txt > /dev/null
-
 # Create user
 echo -e "\e[1;35mCreate regular user\e[m"
 ssh 172.17.15.5 useradd -m $username 2> /dev/null
@@ -331,16 +320,6 @@ ssh 172.17.15.5 systemctl restart postfix
 
 ######################### COBURG MACHINE
 
-# Network and hostname 
-intcoburg=$( ssh 172.17.15.6 '( ip ad | grep -B 2 172.17.15 | head -1 | cut -d" " -f2 | cut -d: -f1 )' )
-ssh 172.17.15.6 "echo coburg.towns.ontario.ops > /etc/hostname"
-check "ssh 172.17.15.6 grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-$intcoburg > ipconf.txt" "File or directory not exist"
-echo "DNS1="172.17.15.2"" >> ipconf.txt
-echo "DNS2="172.17.15.3"" >> ipconf.txt
-echo "PEERDNS=no" >> ipconf.txt
-echo "DOMAIN=towns.ontario.ops" >> ipconf.txt
-check "scp ipconf.txt 172.17.15.6:/etc/sysconfig/network-scripts/ifcfg-$intcoburg > /dev/null" "Can not copy ipconf to COBURG"
-rm -rf ipconf.txt > /dev/null
 
 # Create user
 echo -e "\e[1;35mCreate regular user\e[m"
@@ -463,17 +442,6 @@ ssh 172.17.15.6 systemctl restart dovecot
 
 
 ## MILTON MACHINE
-# Network and hostname 
-intmilton=$( ssh 172.17.15.8 '( ip ad | grep -B 2 172.17.15 | head -1 | cut -d" " -f2 | cut -d: -f1 )' )
-ssh 172.17.15.8 "echo milton.towns.ontario.ops > /etc/hostname"
-check "ssh 172.17.15.8 grep -v -e '^DNS.*' -e 'DOMAIN.*' /etc/sysconfig/network-scripts/ifcfg-$intmilton > ipconf.txt" "File or directory not exist"
-echo "DNS1="172.17.15.2"" >> ipconf.txt
-echo "DNS2="172.17.15.3"" >> ipconf.txt
-echo "PEERDNS=no" >> ipconf.txt
-echo "DOMAIN=towns.ontario.ops" >> ipconf.txt
-check "scp ipconf.txt 172.17.15.8:/etc/sysconfig/network-scripts/ifcfg-$intmilton > /dev/null" "Can not copy ipconf to MILTON"
-rm -rf ipconf.txt > /dev/null
-
 # Install packages
 echo -e "\e[1;35mInstall packages on MILTON\e[m"
 check "ssh 172.17.15.8 yum install -y samba*" "Can not install samba"
