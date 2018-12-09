@@ -108,7 +108,7 @@ function require {
 			done
 		fi
 		
-	######## CHECKING VMS STATUS  ################################ 
+	######## CHECKING VMS STATUS and TURN ON ALL VMS ################################ 
 		echo -e "\e[1;35mChecking VMs status\e[m"
 		for vm in ${!dict[@]}
 		do 
@@ -123,7 +123,7 @@ function require {
 			fi
 		done
 	
-	################# SSH and Pinging and Update Check #########################
+	################# SSH, PING and Update Check #########################
 
 	echo -e "\e[1;35mRestarting Named\e[m"
 	systemctl restart named
@@ -243,9 +243,6 @@ function require {
 	################# DONE - CLONING FUNCTION ###################
 
 
-
-
-	
 	### 5.Checking jobs done from Assignment 1 -------------------------
 
 	#check "ssh ${vms_ip[0]} host ${vms_name[0]}.$domain > /dev/null 2>&1" "Name service in ${vms_name[0]} is not working"
@@ -255,9 +252,6 @@ require
 
 ### Start CONFIGURATION ###
 
-virsh start toronto > /dev/null 2>&1
-echo -e "\e[35mTurn on AutoStart Toronto\e[m"
-virsh autostart toronto
 
 ## KINGSTON MACHINE ###
 
@@ -576,9 +570,12 @@ ssh 172.17.15.2 "restorecon -v -R /var/spool/postfix/"
 ## CRONTAB
 for crontab_vm in ${!dict[@]} ## -- Checking VMS -- ## KEY
 do
-mkdir -p /backup/incremental/cloning-source/$crontab_vm
-crontab -l | { cat; echo "0 * * * * rsync -avz ${dict[$crontab_vm]}:/etc /backup/incremental/cloning-source/$crontab_vm"; } | crontab -
-rsync -avz ${dict[$crontab_vm]}:/etc /backup/incremental/cloning-source/$crontab_vm 
+	mkdir -p /backup/incremental/cloning-source/$crontab_vm
+	if ! crontab -l | grep $crontab_vm
+	then
+		crontab -l | { cat; echo "0 * * * * rsync -avz ${dict[$crontab_vm]}:/etc /backup/incremental/cloning-source/$crontab_vm"; } | crontab -
+	fi
+	rsync -avz ${dict[$crontab_vm]}:/etc /backup/incremental/cloning-source/$crontab_vm 
 done
 
 
