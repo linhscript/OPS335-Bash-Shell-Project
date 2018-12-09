@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ### ALL INPUT BEFORE CHECKING #### -------------------
-domain="towns.ontario.ops"
+domain="$domain"
 vms_name=(toronto ottawa kingston coburg milton)   ## @@@ Master | Slave | SMTP | IMAP | Samba
 vms_ip=(172.17.15.2 172.17.15.3 172.17.15.5 172.17.15.6 172.17.15.8)	
 
@@ -181,7 +181,7 @@ function require {
 			echo "DNS1="${dict[toronto]}"" >> ipconf.txt
 			echo "DNS2="${dict[ottawa]}"" >> ipconf.txt
 			echo "PEERDNS=no" >> ipconf.txt
-			echo "DOMAIN=towns.ontario.ops" >> ipconf.txt
+			echo "DOMAIN=$domain" >> ipconf.txt
 			echo "DEVICE=$intcloyne" >> ipconf.txt
 			sed -i 's/'${maccloyne}'/#'${maccloyne}'/g' ipconf.txt 2> /dev/null  #comment mac address in ipconf.txt file
 			check "scp ipconf.txt ${dict[cloyne]}:/etc/sysconfig/network-scripts/ifcfg-$intcloyne > /dev/null" "Can not copy ipconf to Cloyne"
@@ -219,7 +219,7 @@ function require {
 				newmac=$(virsh dumpxml $clonevm | grep "mac address" | cut -d\' -f2)
 				#-----Replace mac and ip, hostname
 				ssh ${dict[cloyne]} "sed -i 's/.*HW.*/HWADDR\='${newmac}'/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne" ## change mac
-				ssh ${dict[cloyne]} "echo $clonevm.towns.ontario.ops > /etc/hostname "  #change host name
+				ssh ${dict[cloyne]} "echo $clonevm.$domain > /etc/hostname "  #change host name
 				ssh ${dict[cloyne]} "sed -i 's/'${dict[cloyne]}'/'${dict[$clonevm]}'/' /etc/sysconfig/network-scripts/ifcfg-$intcloyne" #change ip
 				echo
 				echo -e "\e[32mCloning Done $clonevm\e[m"
@@ -340,7 +340,7 @@ command_directory = /usr/sbin
 daemon_directory = /usr/libexec/postfix
 data_directory = /var/lib/postfix
 mail_owner = postfix
-mydomain = towns.ontario.ops
+mydomain = $domain
 myorigin = \$mydomain
 inet_interfaces = all
 inet_protocols = all
@@ -392,7 +392,7 @@ dict {
 }
 !include conf.d/*.conf
 !include_try local.conf
-postmaster_address = towns.ontario.ops
+postmaster_address = $domain
 
 EOF
 check "scp dovecot.conf ${dict[coburg]}:/etc/dovecot/dovecot.conf" "Can not copy dovecot.conf to coburg "
@@ -557,8 +557,8 @@ ssh ${dict[milton]} systemctl restart smb
 ## --------MILTON DONE------------ ####
 ## TORONTO MACHINE
 # MX Record
-ssh ${dict[toronto]} "sed -i 's/.*MX.*//' /var/named/mydb-for-towns.ontario.ops "
-ssh ${dict[toronto]} "echo -e 'towns.ontario.ops. IN MX 10 coburg.towns.ontario.ops.\ntowns.ontario.ops. IN MX 20 kingston.towns.ontario.ops.' >> /var/named/mydb-for-towns.ontario.ops"
+ssh ${dict[toronto]} "sed -i 's/.*MX.*//' /var/named/mydb-for-$domain "
+ssh ${dict[toronto]} "echo -e '$domain. IN MX 10 coburg.$domain.\n$domain. IN MX 20 kingston.$domain.' >> /var/named/mydb-for-$domain"
 ssh ${dict[toronto]} "systemctl restart named"
 
 ## Config Postfix permission for Toronto
@@ -595,8 +595,8 @@ cat > /root/Assignment2-information.txt << EOF
 
 + Mail account: $username@$domain
 + Mail Password: $password
-+ Incoming IMAP Server: coburg.towns.ontario.ops    | Port: 143   | SSL: None | Normal Password 
-+ Outgoing SMTP Server: kingston.towns.ontario.ops  | Port: 25    | SSL: None | No authentication 
++ Incoming IMAP Server: coburg.$domain    | Port: 143   | SSL: None | Normal Password 
++ Outgoing SMTP Server: kingston.$domain  | Port: 25    | SSL: None | No authentication 
 
 #Samba Configuration on MILTON machine
 
