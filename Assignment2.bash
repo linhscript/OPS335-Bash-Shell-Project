@@ -558,7 +558,7 @@ ssh ${dict[milton]} systemctl restart smb
 ## TORONTO MACHINE
 # MX Record
 ssh ${dict[toronto]} "sed -i 's/.*MX.*//' /var/named/mydb-for-towns.ontario.ops "
-ssh ${dict[toronto]} "echo -e 'towns.ontario.ops. IN MX 10 coburg.towns.ontario.ops.\ntowns.ontario.ops. IN MX 20 kingston.towns.ontario.ops.' /var/named/mydb-for-towns.ontario.ops"
+ssh ${dict[toronto]} "echo -e 'towns.ontario.ops. IN MX 10 coburg.towns.ontario.ops.\ntowns.ontario.ops. IN MX 20 kingston.towns.ontario.ops.' >> /var/named/mydb-for-towns.ontario.ops"
 ssh ${dict[toronto]} "systemctl restart named"
 
 ## Config Postfix permission for Toronto
