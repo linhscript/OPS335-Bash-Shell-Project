@@ -593,7 +593,7 @@ cat > /root/Assignment2-information.txt << EOF
 
 # Thunderbird configuration on Kingston and Coburg Machines
 
-+ Mail account: $username@towns.ontario.ops 
++ Mail account: $username@$domain
 + Mail Password: $password
 + Incoming IMAP Server: coburg.towns.ontario.ops    | Port: 143   | SSL: None | Normal Password 
 + Outgoing SMTP Server: kingston.towns.ontario.ops  | Port: 25    | SSL: None | No authentication 
