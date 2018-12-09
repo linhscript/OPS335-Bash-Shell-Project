@@ -2,8 +2,17 @@
 
 ### ALL INPUT BEFORE CHECKING #### -------------------
 domain="towns.ontario.ops"
-vms_name=(toronto ottawa kingston coburg milton)   ###-- Put the name in order --  Master Slave Other Machines
+vms_name=(toronto ottawa kingston coburg milton)   ## @@@ Master | Slave | SMTP | IMAP | Samba
 vms_ip=(172.17.15.2 172.17.15.3 172.17.15.5 172.17.15.6 172.17.15.8)	
+
+
+################### Create Hash Table ######################
+		
+for (( i=0; i<${#vms_name[@]};i++ ))
+do
+	declare -A dict
+	dict+=(["${vms_name[$i]}"]="${vms_ip[$i]}")
+done
 		
 ################ INPUT from USER ########################
 
@@ -39,15 +48,6 @@ fi
 IP=$(cat /var/named/mydb-for-* | grep ^vm1 | head -1 | awk '{print $4}')
 digit=$(cat /var/named/mydb-for-* | grep ^vm2 | head -1 | awk '{print $4}' | cut -d. -f3)
 		
-
-################### Create Hash Table ######################
-		
-for (( i=0; i<${#vms_name[@]};i++ ))
-do
-	declare -A dict
-	dict+=(["${vms_name[$i]}"]="${vms_ip[$i]}")
-done
-
 
 ############### CHECKING ALL THE REQUIREMENT BEFORE RUNNING THE SCRIPT ############################
 function require {
@@ -141,7 +141,7 @@ function require {
 
 
 
-	########### CLONING VMS FUNTION START ####################
+	########### CLONING VMS FUNCTION START ####################
 
 	function clone-machine {
 		echo -e "\e[1;35mChecking clone machine\e[m"
@@ -169,26 +169,29 @@ function require {
 			check "virsh start cloyne 2> /dev/null" "Can not start cloyne machine"
 
 			############# Set up clone-machine configuration before cloning
-			check "ssh -o ConnectTimeout=5 172.17.15.100 ls > /dev/null" "Can not SSH to Cloyne, check and run the script again"
-			intcloyne=$(ssh 172.17.15.100 '( ip ad | grep -B 2 172.17.15 | head -1 | cut -d" " -f2 | cut -d: -f1 )' )  #### grab interface infor (some one has ens3)
-			maccloyne=$(ssh 172.17.15.100 grep ".*HWADDR.*" /etc/sysconfig/network-scripts/ifcfg-$intcloyne) #### grab mac address
+			check "ssh -o ConnectTimeout=5 ${dict[cloyne]} ls > /dev/null" "Can not SSH to Cloyne, check and run the script again"
+			check "ssh ${dict[cloyne]} yum install mailx" " Can not install mailx"
+			ssh ${dict[cloyne]} "restorecon /etc/resolv.conf"
+			ssh ${dict[cloyne]} "restorecon -v -R /var/spool/postfix/"
+			intcloyne=$(ssh ${dict[cloyne]} '( ip ad | grep -B 2 172.17.15 | head -1 | cut -d" " -f2 | cut -d: -f1 )' )  #### grab interface infor (some one has ens3)
+			maccloyne=$(ssh ${dict[cloyne]} grep ".*HWADDR.*" /etc/sysconfig/network-scripts/ifcfg-$intcloyne) #### grab mac address
 			
 			############# INTERFACES COLLECTING
-			check "ssh 172.17.15.100 grep -v -e '.*DNS.*' -e 'DOMAIN.*' -e 'DEVICE.*' /etc/sysconfig/network-scripts/ifcfg-$intcloyne > ipconf.txt" "File or directory not exist"
-			echo "DNS1="172.17.15.2"" >> ipconf.txt
-			echo "DNS2="172.17.15.3"" >> ipconf.txt
+			check "ssh ${dict[cloyne]} grep -v -e '.*DNS.*' -e 'DOMAIN.*' -e 'DEVICE.*' /etc/sysconfig/network-scripts/ifcfg-$intcloyne > ipconf.txt" "File or directory not exist"
+			echo "DNS1="${dict[toronto]}"" >> ipconf.txt
+			echo "DNS2="${dict[ottawa]}"" >> ipconf.txt
 			echo "PEERDNS=no" >> ipconf.txt
 			echo "DOMAIN=towns.ontario.ops" >> ipconf.txt
 			echo "DEVICE=$intcloyne" >> ipconf.txt
 			sed -i 's/'${maccloyne}'/#'${maccloyne}'/g' ipconf.txt 2> /dev/null  #comment mac address in ipconf.txt file
-			check "scp ipconf.txt 172.17.15.100:/etc/sysconfig/network-scripts/ifcfg-$intcloyne > /dev/null" "Can not copy ipconf to Cloyne"
+			check "scp ipconf.txt ${dict[cloyne]}:/etc/sysconfig/network-scripts/ifcfg-$intcloyne > /dev/null" "Can not copy ipconf to Cloyne"
 			rm -rf ipconf.txt > /dev/null
 			sleep 2
 			echo
 			echo -e "\e[32mCloyne machine info has been collected\e[m"
-			ssh 172.17.15.100 init 6 > /dev/null 2>&1
+			ssh ${dict[cloyne]} init 6 > /dev/null 2>&1
 
-			while ! eval "ping 172.17.15.100 -c 5 > /dev/null" 
+			while ! eval "ping ${dict[cloyne]} -c 5 > /dev/null" 
 			do
 				echo "Clonning machine is processing"
 				sleep 3
@@ -207,7 +210,7 @@ function require {
 
 				#-----Turn on cloned vm without turning on cloyne machine
 				virsh start $clonevm
-				while ! eval "ping 172.17.15.100 -c 5 > /dev/null" 
+				while ! eval "ping ${dict[cloyne]} -c 5 > /dev/null" 
 				do
 					echo "Clonning machine is starting"
 					sleep 3
@@ -215,12 +218,12 @@ function require {
 				#------ get new mac address
 				newmac=$(virsh dumpxml $clonevm | grep "mac address" | cut -d\' -f2)
 				#-----Replace mac and ip, hostname
-				ssh 172.17.15.100 "sed -i 's/.*HW.*/HWADDR\='${newmac}'/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne" ## change mac
-				ssh 172.17.15.100 "echo $clonevm.towns.ontario.ops > /etc/hostname "  #change host name
-				ssh 172.17.15.100 "sed -i 's/'172.17.15.100'/'${dict[$clonevm]}'/' /etc/sysconfig/network-scripts/ifcfg-$intcloyne" #change ip
+				ssh ${dict[cloyne]} "sed -i 's/.*HW.*/HWADDR\='${newmac}'/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne" ## change mac
+				ssh ${dict[cloyne]} "echo $clonevm.towns.ontario.ops > /etc/hostname "  #change host name
+				ssh ${dict[cloyne]} "sed -i 's/'${dict[cloyne]}'/'${dict[$clonevm]}'/' /etc/sysconfig/network-scripts/ifcfg-$intcloyne" #change ip
 				echo
 				echo -e "\e[32mCloning Done $clonevm\e[m"
-				ssh 172.17.15.100 init 6 > /dev/null 2>&1
+				ssh ${dict[cloyne]} init 6 > /dev/null 2>&1
 				fi
 			done
 
@@ -228,14 +231,14 @@ function require {
 				#------------------# reset cloyne machine
 				oldmac=$(virsh dumpxml cloyne | grep "mac address" | cut -d\' -f2)
 				virsh resume cloyne > /dev/null 2>&1
-				while ! eval "ping 172.17.15.100 -c 5 > /dev/null" 
+				while ! eval "ping ${dict[cloyne]} -c 5 > /dev/null" 
 				do
 					echo "Cloyne machine is starting"
 					sleep 3
 				done
 				sleep 5
-				ssh 172.17.15.100 "sed -i 's/.*HW.*/HWADDR\='${oldmac}'/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne"
-				ssh 172.17.15.100 init 6 > /dev/null 2>&1
+				ssh ${dict[cloyne]} "sed -i 's/.*HW.*/HWADDR\='${oldmac}'/g' /etc/sysconfig/network-scripts/ifcfg-$intcloyne"
+				ssh ${dict[cloyne]} init 6 > /dev/null 2>&1
 		fi
 	}		
 	clone-machine
@@ -257,17 +260,17 @@ require
 
 # Create user
 echo -e "\e[1;35mCreate regular user\e[m"
-ssh 172.17.15.5 useradd -m $username 2> /dev/null
-ssh 172.17.15.5 '( echo '$username:$password' | chpasswd )'
+ssh ${dict[kingston]} useradd -m $username 2> /dev/null
+ssh ${dict[kingston]} '( echo '$username:$password' | chpasswd )'
 echo -e "\e[32mUser Created \e[m"
 
 # Install packages
 echo -e "\e[1;35mInstall packages\e[m"
-check "ssh 172.17.15.5 yum install -y mailx postfix" "Can not install mailx and postfix"
+check "ssh ${dict[kingston]} yum install -y mailx postfix" "Can not install mailx and postfix"
 echo -e "\e[32mDone Installation \e[m"
-ssh 172.17.15.5 setenforce permissive
-check "ssh 172.17.15.5 systemctl start postfix" "Can not start services on KINGSTON"
-check "ssh 172.17.15.5 systemctl enable postfix" "Can not enable services on KINGSTON"
+ssh ${dict[kingston]} setenforce permissive
+check "ssh ${dict[kingston]} systemctl start postfix" "Can not start services on KINGSTON"
+check "ssh ${dict[kingston]} systemctl enable postfix" "Can not enable services on KINGSTON"
 
 # /Etc/main.cf file
 cat > main.cf << EOF
@@ -276,13 +279,13 @@ command_directory = /usr/sbin
 daemon_directory = /usr/libexec/postfix
 data_directory = /var/lib/postfix
 mail_owner = postfix
-mydomain = towns.ontario.ops
+mydomain = $domain
 myorigin = \$mydomain
 inet_interfaces = all
 inet_protocols = all
 mydestination =  \$myhostname
 unknown_local_recipient_reject_code = 550
-relayhost = coburg.towns.ontario.ops
+relayhost = coburg.$domain
 alias_maps = hash:/etc/aliases
 alias_database = hash:/etc/aliases
 debug_peer_level = 2
@@ -300,16 +303,16 @@ readme_directory = /usr/share/doc/postfix-2.10.1/README_FILES
  
 EOF
 
-check "scp main.cf 172.17.15.5:/etc/postfix/main.cf" "Can not copy main.cf to kingston "
+check "scp main.cf ${dict[kingston]}:/etc/postfix/main.cf" "Can not copy main.cf to kingston "
 rm -rf main.cf > /dev/null
 sleep 2
 
 # Iptables
-ssh 172.17.15.5 iptables -C INPUT -p tcp --dport 25 -j ACCEPT 2> /dev/null || ssh 172.17.15.5 iptables -I INPUT -p tcp --dport 25 -j ACCEPT
-ssh 172.17.15.5 iptables -C INPUT -p udp --dport 25 -j ACCEPT 2> /dev/null || ssh 172.17.15.5 iptables -I INPUT -p udp --dport 25 -j ACCEPT
-ssh 172.17.15.5 iptables-save > /etc/sysconfig/iptables
-ssh 172.17.15.5 service iptables save
-ssh 172.17.15.5 systemctl restart postfix
+ssh ${dict[kingston]} iptables -C INPUT -p tcp --dport 25 -j ACCEPT 2> /dev/null || ssh ${dict[kingston]} iptables -I INPUT -p tcp --dport 25 -j ACCEPT
+ssh ${dict[kingston]} iptables -C INPUT -p udp --dport 25 -j ACCEPT 2> /dev/null || ssh ${dict[kingston]} iptables -I INPUT -p udp --dport 25 -j ACCEPT
+ssh ${dict[kingston]} iptables-save > /etc/sysconfig/iptables
+ssh ${dict[kingston]} service iptables save
+ssh ${dict[kingston]} systemctl restart postfix
 ## --------KINGSTON DONE------------ ####
 
 ######################### COBURG MACHINE
@@ -317,19 +320,19 @@ ssh 172.17.15.5 systemctl restart postfix
 
 # Create user
 echo -e "\e[1;35mCreate regular user\e[m"
-ssh 172.17.15.6 useradd -m $username 2> /dev/null
-ssh 172.17.15.6 '( echo '$username:$password' | chpasswd )'
+ssh ${dict[coburg]} useradd -m $username 2> /dev/null
+ssh ${dict[coburg]} '( echo '$username:$password' | chpasswd )'
 echo -e "\e[32mUser Created \e[m"
 
 # Install packages
 echo -e "\e[1;35mInstall packages\e[m"
-check "ssh 172.17.15.6 yum install -y mailx postfix dovecot" "Can not install mailx and postfix and dovecot"
+check "ssh ${dict[coburg]} yum install -y mailx postfix dovecot" "Can not install mailx and postfix and dovecot"
 echo -e "\e[32mDone Installation \e[m"
-ssh 172.17.15.6 setenforce permissive
-check "ssh 172.17.15.6 systemctl start postfix" "Can not start services on COBURG"
-check "ssh 172.17.15.6 systemctl start dovecot" "Can not start services on COBURG"
-check "ssh 172.17.15.6 systemctl enable postfix" "Can not enable services on COBURG"
-check "ssh 172.17.15.6 systemctl enable dovecot" "Can not enable services on COBURG"
+ssh ${dict[coburg]} setenforce permissive
+check "ssh ${dict[coburg]} systemctl start postfix" "Can not start services on COBURG"
+check "ssh ${dict[coburg]} systemctl start dovecot" "Can not start services on COBURG"
+check "ssh ${dict[coburg]} systemctl enable postfix" "Can not enable services on COBURG"
+check "ssh ${dict[coburg]} systemctl enable dovecot" "Can not enable services on COBURG"
 # /Etc/postfix/main.cf
 cat > main.cf << EOF
 queue_directory = /var/spool/postfix
@@ -362,7 +365,7 @@ readme_directory = /usr/share/doc/postfix-2.10.1/README_FILES
 
 EOF
 
-check "scp main.cf 172.17.15.6:/etc/postfix/main.cf" "Can not copy main.cf to coburg "
+check "scp main.cf ${dict[coburg]}:/etc/postfix/main.cf" "Can not copy main.cf to coburg "
 rm -rf main.cf > /dev/null
 sleep 2
 
@@ -376,7 +379,7 @@ first_valid_uid = 1000
 mbox_write_locks = fcntl
 
 EOF
-check "scp 10-mail.conf 172.17.15.6:/etc/dovecot/conf.d/10-mail.conf" "Can not copy 10-mail.conf to coburg "
+check "scp 10-mail.conf ${dict[coburg]}:/etc/dovecot/conf.d/10-mail.conf" "Can not copy 10-mail.conf to coburg "
 rm -rf 10-mail.conf > /dev/null
 sleep 2
 
@@ -392,7 +395,7 @@ dict {
 postmaster_address = towns.ontario.ops
 
 EOF
-check "scp dovecot.conf 172.17.15.6:/etc/dovecot/dovecot.conf" "Can not copy dovecot.conf to coburg "
+check "scp dovecot.conf ${dict[coburg]}:/etc/dovecot/dovecot.conf" "Can not copy dovecot.conf to coburg "
 rm -rf dovecot.conf > /dev/null
 sleep 2
 
@@ -403,7 +406,7 @@ auth_mechanisms = plain
 !include auth-system.conf.ext
 
 EOF
-check "scp 10-auth.conf  172.17.15.6:/etc/dovecot/conf.d/10-auth.conf" "Can not copy 10-auth.conf  to coburg "
+check "scp 10-auth.conf  ${dict[coburg]}:/etc/dovecot/conf.d/10-auth.conf" "Can not copy 10-auth.conf  to coburg "
 rm -rf 10-auth.conf  > /dev/null
 sleep 2
 
@@ -414,68 +417,68 @@ ssl_cert = </etc/pki/dovecot/certs/dovecot.pem
 ssl_key = </etc/pki/dovecot/private/dovecot.pem
 
 EOF
-check "scp 10-ssl.conf 172.17.15.6:/etc/dovecot/conf.d/10-ssl.conf" "Can not copy 10-ssl.conf to coburg "
+check "scp 10-ssl.conf ${dict[coburg]}:/etc/dovecot/conf.d/10-ssl.conf" "Can not copy 10-ssl.conf to coburg "
 rm -rf 10-ssl.conf > /dev/null
 sleep 2
 
 # Aliases
 
-ssh 172.17.15.6 "sed -i 's/^#root.*/root = '$username'/' /etc/aliases "
+ssh ${dict[coburg]} "sed -i 's/^#root.*/root = '$username'/' /etc/aliases "
 
 
 # Iptables
 echo -e "\e[1;35mAdding iptables rules\e[m"
-ssh 172.17.15.6 iptables -C INPUT -p tcp --dport 143 -s 172.17.15.0/24 -j ACCEPT 2> /dev/null || ssh 172.17.15.6 iptables -I INPUT -p tcp --dport 143 -s 172.17.15.0/24 -j ACCEPT
-ssh 172.17.15.6 iptables -C INPUT -p tcp --dport 25 -j ACCEPT 2> /dev/null || ssh 172.17.15.6 iptables -I INPUT -p tcp --dport 25 -j ACCEPT
-ssh 172.17.15.6 iptables -C INPUT -p udp --dport 25 -j ACCEPT 2> /dev/null || ssh 172.17.15.6 iptables -I INPUT -p udp --dport 25 -j ACCEPT
-ssh 172.17.15.6 iptables-save > /etc/sysconfig/iptables
-ssh 172.17.15.6 service iptables save
-ssh 172.17.15.6 systemctl restart postfix
-ssh 172.17.15.6 systemctl restart dovecot
+ssh ${dict[coburg]} iptables -C INPUT -p tcp --dport 143 -s 172.17.15.0/24 -j ACCEPT 2> /dev/null || ssh ${dict[coburg]} iptables -I INPUT -p tcp --dport 143 -s 172.17.15.0/24 -j ACCEPT
+ssh ${dict[coburg]} iptables -C INPUT -p tcp --dport 25 -j ACCEPT 2> /dev/null || ssh ${dict[coburg]} iptables -I INPUT -p tcp --dport 25 -j ACCEPT
+ssh ${dict[coburg]} iptables -C INPUT -p udp --dport 25 -j ACCEPT 2> /dev/null || ssh ${dict[coburg]} iptables -I INPUT -p udp --dport 25 -j ACCEPT
+ssh ${dict[coburg]} iptables-save > /etc/sysconfig/iptables
+ssh ${dict[coburg]} service iptables save
+ssh ${dict[coburg]} systemctl restart postfix
+ssh ${dict[coburg]} systemctl restart dovecot
 ## --------COBURG DONE------------ ####
 
 
 ## MILTON MACHINE
 # Install packages
 echo -e "\e[1;35mInstall packages on MILTON\e[m"
-check "ssh 172.17.15.8 yum install -y samba*" "Can not install samba"
+check "ssh ${dict[milton]} yum install -y samba*" "Can not install samba"
 echo -e "\e[32mDone Installation \e[m"
-check "ssh 172.17.15.8 systemctl start smb" "Can not start services on MILTON"
-check "ssh 172.17.15.8 systemctl enable smb" "Can not enable services on MILTON"
+check "ssh ${dict[milton]} systemctl start smb" "Can not start services on MILTON"
+check "ssh ${dict[milton]} systemctl enable smb" "Can not enable services on MILTON"
 
 # Create regular user
 echo -e "\e[1;35mCreate regular user\e[m"
-ssh 172.17.15.8 useradd -m $username 2> /dev/null
-ssh 172.17.15.8 '( echo '$username:$password' | chpasswd )'
+ssh ${dict[milton]} useradd -m $username 2> /dev/null
+ssh ${dict[milton]} '( echo '$username:$password' | chpasswd )'
 
 # Create SAMBA users,folders,groups,add user to group, give permissons
 miltonusers="$username-1 $username-2 $username-admin"
 for users in $miltonusers
 do
-	ssh 172.17.15.8 useradd -m $users 2> /dev/null
-	ssh 172.17.15.8 '( echo '$users:$password' | chpasswd )'
-cat << EOF | ssh 172.17.15.8 smbpasswd -s -a $users
+	ssh ${dict[milton]} useradd -m $users 2> /dev/null
+	ssh ${dict[milton]} '( echo '$users:$password' | chpasswd )'
+cat << EOF | ssh ${dict[milton]} smbpasswd -s -a $users
 $password
 $password
 EOF
 
-	ssh 172.17.15.8 mkdir -p /documents/private/$users 2> /dev/null
-	ssh 172.17.15.8 groupadd group$users 2>/dev/null	
-	ssh 172.17.15.8 chown -R root:group$users /documents/private/$users 2> /dev/null
-	ssh 172.17.15.8 chmod -R 775 /documents/private/$users 2> /dev/null
+	ssh ${dict[milton]} mkdir -p /documents/private/$users 2> /dev/null
+	ssh ${dict[milton]} groupadd group$users 2>/dev/null	
+	ssh ${dict[milton]} chown -R root:group$users /documents/private/$users 2> /dev/null
+	ssh ${dict[milton]} chmod -R 775 /documents/private/$users 2> /dev/null
 done
 
 for b in $miltonusers
 do
-	ssh 172.17.15.8 gpasswd -M $b,$username-admin group$b 2> /dev/null
+	ssh ${dict[milton]} gpasswd -M $b,$username-admin group$b 2> /dev/null
 done
 
-ssh 172.17.15.8 mkdir -p /documents/shared/readonly 2> /dev/null
-ssh 172.17.15.8 chmod -R 775 /documents/shared/readonly 2> /dev/null
-ssh 172.17.15.8 chown -R root:group$username-admin /documents/shared/readonly 2> /dev/null
+ssh ${dict[milton]} mkdir -p /documents/shared/readonly 2> /dev/null
+ssh ${dict[milton]} chmod -R 775 /documents/shared/readonly 2> /dev/null
+ssh ${dict[milton]} chown -R root:group$username-admin /documents/shared/readonly 2> /dev/null
 
-ssh 172.17.15.8 mkdir -p /documents/shared/readwrite 2> /dev/null
-ssh 172.17.15.8 chmod -R 777 /documents/shared/readwrite 2> /dev/null
+ssh ${dict[milton]} mkdir -p /documents/shared/readwrite 2> /dev/null
+ssh ${dict[milton]} chmod -R 777 /documents/shared/readwrite 2> /dev/null
 echo -e "\e[32mUsers and Folders Created \e[m"
 
 # SMB.CONF
@@ -536,32 +539,32 @@ create mask = 0765
 valid users = $username-1 $username-2 $username-admin 
 
 EOF
-check "scp smb.conf 172.17.15.8:/etc/samba/smb.conf " "Error when trying to copy SMB.CONF"
+check "scp smb.conf ${dict[milton]}:/etc/samba/smb.conf " "Error when trying to copy SMB.CONF"
 rm -rf smb.conf
 
 # Selinux allows SMB
-ssh 172.17.15.8 setsebool -P samba_enable_home_dirs on
-ssh 172.17.15.8 setsebool -P samba_export_all_ro on
-ssh 172.17.15.8 setsebool -P samba_export_all_rw on
+ssh ${dict[milton]} setsebool -P samba_enable_home_dirs on
+ssh ${dict[milton]} setsebool -P samba_export_all_ro on
+ssh ${dict[milton]} setsebool -P samba_export_all_rw on
 # Config iptables
 echo "Adding Firewall Rules"
-ssh 172.17.15.8 iptables -C INPUT -p tcp --dport 445 -s 172.17.15.0/24 -j ACCEPT 2> /dev/null || ssh 172.17.15.8 iptables -I INPUT -p tcp --dport 445 -s 172.17.15.0/24 -j ACCEPT
-ssh 172.17.15.8 iptables -C INPUT -p tcp --dport 139 -s 172.17.15.0/24 -j ACCEPT 2> /dev/null || ssh 172.17.15.8 iptables -I INPUT -p tcp --dport 139 -s 172.17.15.0/24 -j ACCEPT
-ssh 172.17.15.8 iptables-save > /etc/sysconfig/iptables
-ssh 172.17.15.8 service iptables save
-ssh 172.17.15.8 systemctl restart smb
+ssh ${dict[milton]} iptables -C INPUT -p tcp --dport 445 -s 172.17.15.0/24 -j ACCEPT 2> /dev/null || ssh ${dict[milton]} iptables -I INPUT -p tcp --dport 445 -s 172.17.15.0/24 -j ACCEPT
+ssh ${dict[milton]} iptables -C INPUT -p tcp --dport 139 -s 172.17.15.0/24 -j ACCEPT 2> /dev/null || ssh ${dict[milton]} iptables -I INPUT -p tcp --dport 139 -s 172.17.15.0/24 -j ACCEPT
+ssh ${dict[milton]} iptables-save > /etc/sysconfig/iptables
+ssh ${dict[milton]} service iptables save
+ssh ${dict[milton]} systemctl restart smb
 
 ## --------MILTON DONE------------ ####
 ## TORONTO MACHINE
 # MX Record
-ssh 172.17.15.2 "sed -i 's/.*MX.*/towns.ontario.ops. IN MX 10 coburg.towns.ontario.ops.\ntowns.ontario.ops. IN MX 20 kingston.towns.ontario.ops./' /var/named/mydb-for-towns.ontario.ops "
-#ssh 172.17.15.2 "sed -i "/^COMMIT/i towns.ontario.ops. IN MX 10 coburg.towns.ontario.ops.\ntowns.ontario.ops. IN MX 20 kingston.towns.ontario.ops." /var/named/mydb-for-towns.ontario.ops"
-ssh 172.17.15.2 "systemctl restart named"
+ssh ${dict[toronto]} "sed -i 's/.*MX.*/towns.ontario.ops. IN MX 10 coburg.towns.ontario.ops.\ntowns.ontario.ops. IN MX 20 kingston.towns.ontario.ops./' /var/named/mydb-for-towns.ontario.ops "
+#ssh ${dict[toronto]} "sed -i "/^COMMIT/i towns.ontario.ops. IN MX 10 coburg.towns.ontario.ops.\ntowns.ontario.ops. IN MX 20 kingston.towns.ontario.ops." /var/named/mydb-for-towns.ontario.ops"
+ssh ${dict[toronto]} "systemctl restart named"
 
 ## Config Postfix permission for Toronto
 
-ssh 172.17.15.2 "restorecon /etc/resolv.conf"
-ssh 172.17.15.2 "restorecon -v -R /var/spool/postfix/"
+ssh ${dict[toronto]} "restorecon /etc/resolv.conf"
+ssh ${dict[toronto]} "restorecon -v -R /var/spool/postfix/"
 
 
 
@@ -599,7 +602,7 @@ cat > /root/Assignment2-information.txt << EOF
 
 + Users for Samba: $username-1 $username-2 $username-admin
 + Password to login: $password
-+ Path: 172.17.15.8
++ Path: ${dict[milton]}
 
 ## All the above information will be stored in  /root/Assignment2-information.txt ##
 ------------------------------------------------------------
