@@ -2,8 +2,8 @@
 
 ### ALL INPUT BEFORE CHECKING #### -------------------
 domain="$domain"
-network=172.17.15.0
-vms_name=(toronto ottawa kingston coburg milton)   ## @@@ Master | Slave | SMTP | IMAP | Samba
+network=172.17.15 ### User only 3 digits
+vms_name=(toronto ottawa kingston coburg milton)   ## @@@ Master [0] | Slave [1] | SMTP [2] | IMAP [3] | Samba [4]
 vms_ip=(172.17.15.2 172.17.15.3 172.17.15.5 172.17.15.6 172.17.15.8)	
 
 
@@ -171,7 +171,7 @@ function require {
 			check "ssh ${dict[cloyne]} yum install mailx" " Can not install mailx"
 			ssh ${dict[cloyne]} "restorecon /etc/resolv.conf"
 			ssh ${dict[cloyne]} "restorecon -v -R /var/spool/postfix/"
-			intcloyne=$(ssh ${dict[cloyne]} '( ip ad | grep -B 2 172.17.15 | head -1 | cut -d" " -f2 | cut -d: -f1 )' )  #### grab interface infor (some one has ens3)
+			intcloyne=$(ssh ${dict[cloyne]} '( ip ad | grep -B 2 $network | head -1 | cut -d" " -f2 | cut -d: -f1 )' )  #### grab interface infor (some one has ens3)
 			maccloyne=$(ssh ${dict[cloyne]} grep ".*HWADDR.*" /etc/sysconfig/network-scripts/ifcfg-$intcloyne) #### grab mac address
 			
 			############# INTERFACES COLLECTING
@@ -344,7 +344,7 @@ inet_interfaces = all
 inet_protocols = all
 mydestination = \$mydomain,\$myhostname, localhost.\$mydomain, localhost
 unknown_local_recipient_reject_code = 550
-mynetworks = 172.17.15.0/24, 127.0.0.0/8
+mynetworks = $network.0/24, 127.0.0.0/8
 alias_maps = hash:/etc/aliases
 alias_database = hash:/etc/aliases
 home_mailbox = mailboxes/
@@ -426,7 +426,7 @@ ssh ${dict[coburg]} "sed -i 's/^#root.*/root: '$username'/' /etc/aliases "
 
 # Iptables
 echo -e "\e[1;35mAdding iptables rules\e[m"
-ssh ${dict[coburg]} iptables -C INPUT -p tcp --dport 143 -s 172.17.15.0/24 -j ACCEPT 2> /dev/null || ssh ${dict[coburg]} iptables -I INPUT -p tcp --dport 143 -s 172.17.15.0/24 -j ACCEPT
+ssh ${dict[coburg]} iptables -C INPUT -p tcp --dport 143 -s $network.0/24 -j ACCEPT 2> /dev/null || ssh ${dict[coburg]} iptables -I INPUT -p tcp --dport 143 -s $network.0/24 -j ACCEPT
 ssh ${dict[coburg]} iptables -C INPUT -p tcp --dport 25 -j ACCEPT 2> /dev/null || ssh ${dict[coburg]} iptables -I INPUT -p tcp --dport 25 -j ACCEPT
 ssh ${dict[coburg]} iptables -C INPUT -p udp --dport 25 -j ACCEPT 2> /dev/null || ssh ${dict[coburg]} iptables -I INPUT -p udp --dport 25 -j ACCEPT
 ssh ${dict[coburg]} iptables-save > /etc/sysconfig/iptables
@@ -489,7 +489,7 @@ workgroup = WORKGROUP
 server string = $fullname-Assignment2
 encrypt passwords = yes
 smb passwd file = /etc/samba/smbpasswd
-hosts allow = 172.17.15. 127.0.0.1
+hosts allow = $network. 127.0.0.1
   
 [$username-1]
 comment = Assignment2
@@ -547,8 +547,8 @@ ssh ${dict[milton]} setsebool -P samba_export_all_ro on
 ssh ${dict[milton]} setsebool -P samba_export_all_rw on
 # Config iptables
 echo "Adding Firewall Rules"
-ssh ${dict[milton]} iptables -C INPUT -p tcp --dport 445 -s 172.17.15.0/24 -j ACCEPT 2> /dev/null || ssh ${dict[milton]} iptables -I INPUT -p tcp --dport 445 -s 172.17.15.0/24 -j ACCEPT
-ssh ${dict[milton]} iptables -C INPUT -p tcp --dport 139 -s 172.17.15.0/24 -j ACCEPT 2> /dev/null || ssh ${dict[milton]} iptables -I INPUT -p tcp --dport 139 -s 172.17.15.0/24 -j ACCEPT
+ssh ${dict[milton]} iptables -C INPUT -p tcp --dport 445 -s $network.0/24 -j ACCEPT 2> /dev/null || ssh ${dict[milton]} iptables -I INPUT -p tcp --dport 445 -s $network.0/24 -j ACCEPT
+ssh ${dict[milton]} iptables -C INPUT -p tcp --dport 139 -s $network.0/24 -j ACCEPT 2> /dev/null || ssh ${dict[milton]} iptables -I INPUT -p tcp --dport 139 -s $network.0/24 -j ACCEPT
 ssh ${dict[milton]} iptables-save > /etc/sysconfig/iptables
 ssh ${dict[milton]} service iptables save
 ssh ${dict[milton]} systemctl restart smb
