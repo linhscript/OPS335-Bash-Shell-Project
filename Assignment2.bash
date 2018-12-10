@@ -421,7 +421,7 @@ sleep 2
 
 # Aliases
 
-ssh ${dict[coburg]} "sed -i 's/^#root.*/root = '$username'/' /etc/aliases "
+ssh ${dict[coburg]} "sed -i 's/^#root.*/root: '$username'/' /etc/aliases "
 
 
 # Iptables
