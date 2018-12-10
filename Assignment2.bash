@@ -462,8 +462,8 @@ EOF
 
 	ssh ${dict[milton]} mkdir -p /documents/private/$users 2> /dev/null
 	ssh ${dict[milton]} groupadd group$users 2>/dev/null	
-	ssh ${dict[milton]} chown -R root:group$users /documents/private/$users 2> /dev/null
-	ssh ${dict[milton]} chmod -R 775 /documents/private/$users 2> /dev/null
+	ssh ${dict[milton]} chown -R group$users:group$users /documents/private/$users 2> /dev/null
+	ssh ${dict[milton]} chmod -R 770 /documents/private/$users 2> /dev/null
 done
 
 for b in $miltonusers
@@ -471,6 +471,7 @@ do
 	ssh ${dict[milton]} gpasswd -M $b,$username-admin group$b 2> /dev/null
 done
 
+#### PERMISION for READ-ONLY and READ-WRITE Folders
 ssh ${dict[milton]} mkdir -p /documents/shared/readonly 2> /dev/null
 ssh ${dict[milton]} chmod -R 775 /documents/shared/readonly 2> /dev/null
 ssh ${dict[milton]} chown -R root:group$username-admin /documents/shared/readonly 2> /dev/null
