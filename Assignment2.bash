@@ -2,6 +2,7 @@
 
 ### ALL INPUT BEFORE CHECKING #### -------------------
 domain="$domain"
+network=172.17.15.0
 vms_name=(toronto ottawa kingston coburg milton)   ## @@@ Master | Slave | SMTP | IMAP | Samba
 vms_ip=(172.17.15.2 172.17.15.3 172.17.15.5 172.17.15.6 172.17.15.8)	
 
@@ -115,11 +116,8 @@ function require {
 			if ! virsh list | grep -iqs $vm
 			then
 				virsh start $vm > /dev/null 2>&1
-				while ! eval "ping ${dict[$vm]} -c 5 > /dev/null" 
-				do
-					echo -e "\e[1;34mMachine $vm is turning on \e[0m" >&2
-					sleep 3
-				done
+				echo -e "\e[1;34mMachine $vm is turning on \e[0m" >&2
+				sleep 3
 			fi
 		done
 	
