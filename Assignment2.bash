@@ -45,7 +45,9 @@ fi
 ################ DONE - INPUT from USER ########################
 
 
-################# GRAB DIGITS FROM IP #########################
+################# GRAB DIGITS FROM IP - REQUIRE ASSIGNMENT 1 DONE #########################
+check "cat /var/named/mydb-for-* 2> /dev/null" "ASSIGNMENT 1 HAS NOT DONE YET, CAN NOT FIND mydb-for-id"
+
 IP=$(cat /var/named/mydb-for-* | grep ^vm1 | head -1 | awk '{print $4}')
 digit=$(cat /var/named/mydb-for-* | grep ^vm2 | head -1 | awk '{print $4}' | cut -d. -f3)
 		
@@ -250,6 +252,25 @@ function require {
 	
 }
 require
+
+#### OUTPUT Function ### 
+function status() {
+	if eval $1
+	then 
+		echo -e "\e[32mOK\e[m : $2"
+	else
+		echo -e "\e[31mnot OK\e[m : $2"
+		exit 3
+	fi
+}
+
+######## Last checking
+
+for check_vm in ${!dict[@]} ## -- Checking VMS -- ## KEY
+do
+status "ssh -o ConnectTimeout=5 -oStrictHostKeyChecking=no ${dict[$check_vm]} ls > /dev/null" "SSH to $check_vm"
+done
+
 
 ### Start CONFIGURATION ###
 
