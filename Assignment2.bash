@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ### ALL INPUT BEFORE CHECKING #### -------------------
-domain="$domain"
+domain="towns.ontario.ops"
 network=172.17.15 ### User only 3 digits
 vms_name=(toronto ottawa kingston coburg milton)   ## @@@ Master [0] | Slave [1] | SMTP [2] | IMAP [3] | Samba [4]
 vms_ip=(172.17.15.2 172.17.15.3 172.17.15.5 172.17.15.6 172.17.15.8)	
