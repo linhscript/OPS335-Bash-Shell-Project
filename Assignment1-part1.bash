@@ -1,10 +1,11 @@
 #!/bin/bash
 
 ### ALL INPUT BEFORE CHECKING #### -------------------
-domain="$domain"
+domain=towns.ontario.ops
 network=172.17.15 ### User only 3 digits
-vms_name=(toronto ottawa kingston coburg milton)   ## @@@ Master [0] | Slave [1] | SMTP [2] | IMAP [3] | Samba [4]
-vms_ip=(172.17.15.2 172.17.15.3 172.17.15.5 172.17.15.6 172.17.15.8)	
+vms_name=(cloyne)   ## @@@ Master [0] | Slave [1] | SMTP [2] | IMAP [3] | Samba [4]
+vms_ip=(172.17.15.100)	
+cloningvm=vm3
 
 
 ################### Create Hash Table ######################
@@ -111,24 +112,20 @@ function require {
 			done
 		fi
 		
-	######## CHECKING VMS STATUS and TURN ON ALL VMS ################################ 
-		echo -e "\e[1;35mChecking VMs status\e[m"
-		for vm in ${!dict[@]}
-		do 
-			if ! virsh list | grep -iqs $vm
-			then
-				virsh start $vm > /dev/null 2>&1
-				echo -e "\e[1;34mMachine $vm is turning on \e[0m" >&2
+	######## CHECKING VM3 STATUS and TURN ON VM3 ################################ 
+		echo -e "\e[1;35mChecking $cloningvm status\e[m"
+		if ! virsh list | grep -iqs $cloningvm
+		then
+			virsh start $cloningvm > /dev/null 2>&1
+			while ! eval "ping $cloningvm -c 5 > /dev/null"
+			do
+				echo -e "\e[1;34mMachine $cloningvm is turning on \e[0m" >&2
 				sleep 3
-			fi
-		done
+			done
+		fi
+
 	
 	################# SSH, PING and Update Check #########################
-
-	echo -e "\e[1;35mRestarting Named\e[m"
-	systemctl restart named
-	echo -e "\e[32mRestarted Done \e[m"
-
 	check "ping -c 3 google.ca > /dev/null" "Host machine can not ping GOOGLE.CA, check INTERNET connection then run the script again"
 
 		
@@ -166,25 +163,22 @@ function require {
 			echo
 			echo -e "\e[1;32m###### CLONING MACHINES IS PROCESSING... #######\e[m"
 			echo
-			check "virsh start cloyne 2> /dev/null" "Can not start cloyne machine"
+			check "virsh start $cloningvm 2> /dev/null" "Can not start $cloningvm machine"
 
 			############# Set up clone-machine configuration before cloning
-			check "ssh -o ConnectTimeout=5 ${dict[cloyne]} ls > /dev/null" "Can not SSH to Cloyne, check and run the script again"
-			check "ssh ${dict[cloyne]} yum install mailx" " Can not install mailx"
-			ssh ${dict[cloyne]} "restorecon /etc/resolv.conf"
-			ssh ${dict[cloyne]} "restorecon -v -R /var/spool/postfix/"
-			intcloyne=$(ssh ${dict[cloyne]} '( ip ad | grep -B 2 $network | head -1 | cut -d" " -f2 | cut -d: -f1 )' )  #### grab interface infor (some one has ens3)
-			maccloyne=$(ssh ${dict[cloyne]} grep ".*HWADDR.*" /etc/sysconfig/network-scripts/ifcfg-$intcloyne) #### grab mac address
+			check "ssh -o ConnectTimeout=5 $cloningvm ls > /dev/null" "Can not SSH to $cloningvm, check and run the script again"
+			check "ssh $cloningvm yum install mailx" " Can not install mailx"
+			ssh $cloningvm "restorecon /etc/resolv.conf"
+			ssh $cloningvm "restorecon -v -R /var/spool/postfix/"
+			intcloyne=$(ssh $cloningvm '( ip ad | grep -B 2 192.168.$digit | head -1 | cut -d" " -f2 | cut -d: -f1 )' )  #### grab interface infor (some one has ens3)
+			maccloyne=$(ssh $cloningvm grep ".*HWADDR.*" /etc/sysconfig/network-scripts/ifcfg-$intcloyne) #### grab mac address
 			
 			############# INTERFACES COLLECTING
-			check "ssh ${dict[cloyne]} grep -v -e '.*DNS.*' -e 'DOMAIN.*' -e 'DEVICE.*' /etc/sysconfig/network-scripts/ifcfg-$intcloyne > ipconf.txt" "File or directory not exist"
-			echo "DNS1="${dict[toronto]}"" >> ipconf.txt
-			echo "DNS2="${dict[ottawa]}"" >> ipconf.txt
-			echo "PEERDNS=no" >> ipconf.txt
+			check "ssh $cloningvm grep -v -e '.*DNS.*' -e 'DOMAIN.*' -e 'DEVICE.*' /etc/sysconfig/network-scripts/ifcfg-$intcloyne > ipconf.txt" "File or directory not exist"
 			echo "DOMAIN=$domain" >> ipconf.txt
 			echo "DEVICE=$intcloyne" >> ipconf.txt
 			sed -i 's/'${maccloyne}'/#'${maccloyne}'/g' ipconf.txt 2> /dev/null  #comment mac address in ipconf.txt file
-			check "scp ipconf.txt ${dict[cloyne]}:/etc/sysconfig/network-scripts/ifcfg-$intcloyne > /dev/null" "Can not copy ipconf to Cloyne"
+			check "scp ipconf.txt $cloningvm:/etc/sysconfig/network-scripts/ifcfg-$intcloyne > /dev/null" "Can not copy ipconf to Cloyne"
 			rm -rf ipconf.txt > /dev/null
 			sleep 2
 			echo
