@@ -45,8 +45,8 @@ fi
 ################ DONE - INPUT from USER ########################
 
 
-################# GRAB DIGITS FROM IP - REQUIRE ASSIGNMENT 1 DONE #########################
-check "cat /var/named/mydb-for-* 2> /dev/null" "ASSIGNMENT 1 HAS NOT DONE YET, CAN NOT FIND mydb-for-id"
+################# GRAB DIGITS FROM IP - REQUIRE LAB 3 DONE #########################
+check "cat /var/named/mydb-for-* 2> /dev/null" "LAB 3 HAS NOT DONE YET, CAN NOT FIND mydb-for-id"
 
 IP=$(cat /var/named/mydb-for-* | grep ^vm1 | head -1 | awk '{print $4}')
 digit=$(cat /var/named/mydb-for-* | grep ^vm2 | head -1 | awk '{print $4}' | cut -d. -f3)
