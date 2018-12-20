@@ -272,7 +272,7 @@ status "ssh -o ConnectTimeout=5 -oStrictHostKeyChecking=no ${dict[$check_vm]} ls
 done
 
 
-### Start CONFIGURATION ###
+############################### Start CONFIGURATION #############################
 
 
 ## KINGSTON MACHINE ###
