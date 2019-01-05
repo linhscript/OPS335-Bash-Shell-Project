@@ -287,12 +287,20 @@ cat > network.xml << EOF
   </ip>
 </network>
 EOF
+		net-create --file network.xml
+		rm -rf network.xml
 	fi
-net-create --file network.xml
-rm -rf network.xml
+
+# Replace network in virtual machine
+virsh dumpxml cloyne > cl.xml
+nwn=$(cat cl.xml | grep network=.* | cut -d\' -f2)
+sed 's/'${nwn}'/335assign/' cl.xml
+virsh define cl.xml
+rm -rf cl.xml
+
 
 # Generate SSH key with no key
-ssh-keygen -f /root/.ssh/id_rsa -t rsa -N ''
+y | ssh-keygen -f /root/.ssh/id_rsa -t rsa -N ''
 
 # Configuration
 # PermitRootLogin Status:
