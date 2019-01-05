@@ -270,7 +270,10 @@ done
 ############################### Start CONFIGURATION #############################
 
 # Create Network 335assign
-# Generate SSH key
+	## Check the system whether it has 335assign or not
+
+# Generate SSH key with no key
+ssh-keygen -f /root/.ssh/id_rsa -t rsa -N ''
 
 # Configuration
 # PermitRootLogin Status:
