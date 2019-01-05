@@ -263,6 +263,7 @@ function status() {
 for check_vm in ${!dict[@]} ## -- Checking VMS -- ## KEY
 do
 status "ssh -o ConnectTimeout=5 -oStrictHostKeyChecking=no ${dict[$check_vm]} ls > /dev/null" "SSH to $check_vm"
+status "ssh ${dict[$check_vm]} ping -c 3 google.ca > /dev/null" "Ping GOOGLE.CA from $check_vm"
 done
 
 
