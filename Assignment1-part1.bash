@@ -281,16 +281,15 @@ cat > network.xml << EOF
       <port start='1024' end='65535'/>
     </nat>
   </forward>
-  <bridge name='335assign' stp='on' delay='0'/>
+  <bridge name='virbr3' stp='on' delay='0'/>
+  <domain name='335assign'/>
   <ip address='172.17.15.1' netmask='255.255.255.0'>
-    <dhcp>
-      <range start='192.168.10.10' end='192.168.10.100'/>
-    </dhcp>
   </ip>
 </network>
-
 EOF
 	fi
+net-create --file network.xml
+rm -rf network.xml
 
 # Generate SSH key with no key
 ssh-keygen -f /root/.ssh/id_rsa -t rsa -N ''
