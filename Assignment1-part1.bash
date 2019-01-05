@@ -271,6 +271,26 @@ done
 
 # Create Network 335assign
 	## Check the system whether it has 335assign or not
+	if ! virsh net-list --all | grep 335assign
+	then
+cat > network.xml << EOF
+<network>
+  <name>335assign</name>
+  <forward mode='nat'>
+    <nat>
+      <port start='1024' end='65535'/>
+    </nat>
+  </forward>
+  <bridge name='335assign' stp='on' delay='0'/>
+  <ip address='172.17.15.1' netmask='255.255.255.0'>
+    <dhcp>
+      <range start='192.168.10.10' end='192.168.10.100'/>
+    </dhcp>
+  </ip>
+</network>
+
+EOF
+	fi
 
 # Generate SSH key with no key
 ssh-keygen -f /root/.ssh/id_rsa -t rsa -N ''
