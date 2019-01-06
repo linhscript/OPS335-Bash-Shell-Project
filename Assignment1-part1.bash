@@ -301,10 +301,12 @@ rm -rf cl.xml
 
 # Generate SSH key with no key
 y | ssh-keygen -f /root/.ssh/id_rsa -t rsa -N ''
+ssh-copy-id -i root/.ssh/id_rsa.pub root@172.17.15.100
 
 # Configuration
 # PermitRootLogin Status:
-
+pm=$(cat /etc/ssh/sshd_config | grep PermitRootLogin | head -1)
+sed -i 's/'${pm}'/PermitRootLogin no/' /etc/ssh/sshd_config
 # Firewalld Status: Disable
 # Shell Script contents (/root/bin/assnBackup.bash
 # Full Backup Status
