@@ -306,9 +306,19 @@ ssh-copy-id -i root/.ssh/id_rsa.pub root@172.17.15.100
 # Configuration
 # PermitRootLogin Status:
 pm=$(cat /etc/ssh/sshd_config | grep PermitRootLogin | head -1)
-sed -i 's/'${pm}'/PermitRootLogin no/' /etc/ssh/sshd_config
+sed -i 's/'${pm}'/PermitRootLogin yes/' /etc/ssh/sshd_config
 # Firewalld Status: Disable
+ssh 172.17.15.100 systemctl stop firewalld
+ssh 172.17.15.100 systemctl disable firewalld
 # Shell Script contents (/root/bin/assnBackup.bash
+cat > /root/bin/assnBackup.bash << EOF
+for bk in \$(ls /var/lib/libvirt/images/ | grep -v vm* | grep \.qcow2\$)
+do
+	echo "Backing up \$bk"
+	mkdir -p /backup/full 2> /dev/null
+	pv /var/lib/libvirt/images/\$bk | gzip | pv  > /backup/full/\$bk.backup.gz
+done
+EOF
 # Full Backup Status
 #Crontab Log 
 #Incremental Backup 
