@@ -310,6 +310,30 @@ sed -i 's/'${pm}'/PermitRootLogin yes/' /etc/ssh/sshd_config
 # Firewalld Status: Disable
 ssh 172.17.15.100 systemctl stop firewalld
 ssh 172.17.15.100 systemctl disable firewalld
+cat > rule.bash << EOF
+#!/bin/bash
+
+iptables -t filter -F
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A INPUT -i lo -j ACCEPT
+iptables -A INPUT -p icmp -s 171.17.15.0/24 -j ACCEPT
+iptables -A INPUT -p tcp -s 172.17.15.1 --dport 22 -j ACCEPT
+iptables -A INPUT -j DROP
+
+iptables -A FORWARD -j DROP
+iptables -A OUTPUT -o lo -j ACCEPT
+iptables -A OUTPUT -j ACCEPT
+
+iptables-save > /etc/sysconfig/iptables
+service iptables save > /dev/null 2>&1
+sleep 3
+EOF
+
+check "scp rule.bash root@172.17.15.100:/root" "Can not copy rule to cloyne machine"
+rm -rf ruleto.bash > /dev/null
+check "ssh root@172.17.15.100 bash rule.bash " "Can not excute script on Toronto machince, remote to cloyne machince and run it"
+sleep 2
+
 # Shell Script contents (/root/bin/assnBackup.bash
 mkdir /root/bin 2> /dev/null
 cat > /root/bin/assnBackup.bash << EOF
