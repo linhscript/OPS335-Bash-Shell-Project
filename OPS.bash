@@ -2,19 +2,19 @@
 
 # LIST of choice. One choice at a time
 if zenity --list --title="List of works" --radiolist\
- --column="Options" --column="Details" --width=600 --height=400 \
- 1 Lab_1\
- 2 Lab_2a\
- 3 Lab_2b\
- 4 Lab_3\
- 5 Lab_4a\
- 6 Lab_4b\
- 7 Lab_5\
- 8 Lab_6\
- 9 Lab_7\
- 10 Lab_8\
- 11 Assignment1_Part_1\
- 12 Assignment1_Part_2\
+ --column="Options" --column="Details" --width=300 --height=500 \
+ 1 Lab1\
+ 2 Lab2a\
+ 3 Lab2b\
+ 4 Lab3\
+ 5 Lab4a\
+ 6 Lab4b\
+ 7 Lab5\
+ 8 Lab6\
+ 9 Lab7\
+ 10 Lab8\
+ 11 Assignment1-part1\
+ 12 Assignment1-part2\
  13 Assignment2 > var
 then
 	ans=$(cut -f1 var)
@@ -34,11 +34,11 @@ exit 3
 rm -rf var
 fi
 
-optlst="Lab_1 Lab_2a Lab_2b	Lab_3 Lab_4a Lab_4b Lab_5 Lab_6 Lab_7 Lab_8	Assignment1_Part_1 Assignment1_Part_2 Assignment2"
+optlst="Lab1 Lab2a Lab2b Lab3 Lab4a Lab4b Lab5 Lab6 Lab7 Lab8 Assignment1-part1 Assignment1-part2 Assignment2"
 for i in $optlst
 do
-	if $i -eq $ans
+	if [ "$i" = "$ans" ]
 	then
-
+		souce /root/OPS335/$i.bash
 	fi
 done
