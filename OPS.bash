@@ -39,6 +39,9 @@ for i in $optlst
 do
 	if [ "$i" = "$ans" ]
 	then
+		clear
+		echo -e "\e[31mStarting $i\e[m"
+		echo
 		souce /root/OPS335/$i.bash
 	fi
 done
