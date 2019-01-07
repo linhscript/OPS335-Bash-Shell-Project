@@ -1,7 +1,7 @@
 #!/bin/bash
 
-zenity --list --title="List of works" --checklist\
- --column="Options" --column="Details" \
+zenity --list --title="List of works" --radiolist\
+ --column="Options" --column="Details" --width=600 --height=400 \
  1 Lab_1\
  2 Lab_2a\
  3 Lab_2b\
