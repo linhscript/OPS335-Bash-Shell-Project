@@ -321,7 +321,7 @@ do
 done
 EOF
 # Full Backup Status (already have at the beginning)
-#Crontab Log 
+#Crontab Log ++ #Incremental Backup 
 for crontab_vm in ${!dict[@]} ## -- Checking VMS -- ## KEY
 do
 	mkdir -p /backup/incremental/cloning-source/$crontab_vm 2> /dev/null
@@ -331,4 +331,3 @@ do
 	fi
 	rsync -avz ${dict[$crontab_vm]}:/etc /backup/incremental/cloning-source/$crontab_vm 
 done
-#Incremental Backup 
