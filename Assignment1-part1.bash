@@ -311,6 +311,7 @@ sed -i 's/'${pm}'/PermitRootLogin yes/' /etc/ssh/sshd_config
 ssh 172.17.15.100 systemctl stop firewalld
 ssh 172.17.15.100 systemctl disable firewalld
 # Shell Script contents (/root/bin/assnBackup.bash
+mkdir /root/bin 2> /dev/null
 cat > /root/bin/assnBackup.bash << EOF
 for bk in \$(ls /var/lib/libvirt/images/ | grep -v vm* | grep \.qcow2\$)
 do
@@ -319,6 +320,15 @@ do
 	pv /var/lib/libvirt/images/\$bk | gzip | pv  > /backup/full/\$bk.backup.gz
 done
 EOF
-# Full Backup Status
+# Full Backup Status (already have at the beginning)
 #Crontab Log 
+for crontab_vm in ${!dict[@]} ## -- Checking VMS -- ## KEY
+do
+	mkdir -p /backup/incremental/cloning-source/$crontab_vm 2> /dev/null
+	if ! crontab -l | grep $crontab_vm
+	then
+		crontab -l | { cat; echo "0 * * * * rsync -avz ${dict[$crontab_vm]}:/etc /backup/incremental/cloning-source/$crontab_vm"; } | crontab -
+	fi
+	rsync -avz ${dict[$crontab_vm]}:/etc /backup/incremental/cloning-source/$crontab_vm 
+done
 #Incremental Backup 
