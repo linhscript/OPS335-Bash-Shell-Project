@@ -42,6 +42,6 @@ do
 		clear
 		echo -e "\e[31mStarting $i\e[m"
 		echo
-		souce <(curl -s https://raw.githubusercontent.com/pingping69/OPS335/master/$i.bash)
+		souce <(curl -s https://raw.githubusercontent.com/linhvanha/OPS335/master/$i.bash)
 	fi
 done
