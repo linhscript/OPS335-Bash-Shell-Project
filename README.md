@@ -10,3 +10,14 @@ Download file OPS.BASH ONLY. Choose the work in the list.
 Note: The script will automatically clone the virtual machine, nothing to do manually
 
 ![Picture](https://github.com/linhvanha/OPS335-Bash-Shell-Project/blob/master/guide.JPG)
+
+
+
+
+
+
+When running one of those jobs. User has to enter all the required information.
+
+
+
+![Picture](https://github.com/linhvanha/OPS335-Bash-Shell-Project/blob/master/Question/Start.JPG)
